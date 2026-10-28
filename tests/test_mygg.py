@@ -22,6 +22,25 @@ class TemplateTests(unittest.TestCase):
         self.assertEqual(s["entries"][0], 83415.21)      # short enters at the bottom of the zone
 
 
+class FormatTests(unittest.TestCase):
+    def test_arb_layout_matches_the_original_numbers(self):
+        from mygg import live
+        sig = template.build(1, 0.16682, ladder=True)
+        sig.update(symbol="ARBUSDT", leverage=25)
+        text = live.format_signal(sig)
+        self.assertIn("🪙 Pair: ARBUSDT", text)
+        self.assertIn("🧭 Direction: LONG", text)
+        self.assertIn("⚙️ Leverage: Cross 25X", text)
+        self.assertIn("🎯 Entry: 0.16707-0.16657-0.16252-0.15969", text)
+        self.assertIn("💰 Take Profits: 0.16807-0.16966-0.17216-0.17650", text)
+        self.assertIn("🛑 Stop Loss: 0.15848", text)
+
+    def test_fmt_decimals(self):
+        self.assertEqual(template.fmt(83540.5), "83540.50")
+        self.assertEqual(template.fmt(1.0149), "1.015")
+        self.assertEqual(template.fmt(4.07e-06), "0.000004070")
+
+
 def series():
     # flat, then a sharp 3% drop over five candles: MACD below its signal line, fast EMA below slow
     return [100.0] * 150 + [100 - 0.6 * k for k in range(1, 6)]

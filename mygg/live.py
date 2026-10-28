@@ -36,12 +36,16 @@ def send_telegram(text):
 
 
 def format_signal(sig):
-    arrow = "LONG" if sig["side"] == "long" else "SHORT"
-    lo, hi = sig["zone"]
-    return (f"MYGG paper signal | #{sig['symbol']} 15M | {sig['rule']}\n"
-            f"{arrow} entry zone: {lo}-{hi}\nLeverage: {sig['leverage']}x\n"
-            + "".join(f"Target {i + 1}: {p}\n" for i, p in enumerate(sig["tps"]))
-            + f"Stop-loss: {sig['stop']}\nPaper trading only, not advice.")
+    """Cornix-readable layout (pair, exchange, direction, leverage, entries, targets, stop)."""
+    f = template.fmt
+    return (f"⚡ MYGG PAPER SIGNAL ⚡\n\n"
+            f"🪙 Pair: {sig['symbol']}\n"
+            f"🏦 Exchange: Binance Futures\n"
+            f"🧭 Direction: {sig['side'].upper()}\n"
+            f"⚙️ Leverage: Cross {sig['leverage']}X\n"
+            f"🎯 Entry: {'-'.join(f(p) for p in sig['entries'])}\n"
+            f"💰 Take Profits: {'-'.join(f(p) for p in sig['tps'])}\n"
+            f"🛑 Stop Loss: {f(sig['stop'])}")
 
 
 def scan(symbols, interval=20, log="mygg_signals.csv", rules=DEFAULT_RULES, once=False):
@@ -67,7 +71,7 @@ def scan(symbols, interval=20, log="mygg_signals.csv", rules=DEFAULT_RULES, once
                     ident = (key, rule.name, start, side)
                     if side and ident not in seen:
                         seen.add(ident)
-                        sig = template.build(side, prices[key])
+                        sig = template.build(side, prices[key], ladder=True)
                         sig.update(symbol=key, rule=rule.name, leverage=rule.leverage)
                         text = format_signal(sig)
                         print(text, "\n", flush=True)
