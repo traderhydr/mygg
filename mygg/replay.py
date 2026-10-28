@@ -51,7 +51,11 @@ def classify(rule, candles, i, side, m, window=WINDOW):
 
 def _rows(signals_path, data_dir):
     for row in csv.DictReader(open(signals_path)):
-        candles = load(f"{data_dir}/{row['symbol']}.csv")
+        try:
+            candles = load(f"{data_dir}/{row['symbol']}.csv")
+        except FileNotFoundError:
+            print(f"skipping {row['symbol']} {row['time_utc']}: no candles in {data_dir}")
+            continue
         t = int(dt.datetime.strptime(row["time_utc"], "%Y-%m-%d %H:%M")
                 .replace(tzinfo=dt.timezone.utc).timestamp() * 1000)
         i = max(k for k in range(len(candles)) if candles[k][0] <= t)
