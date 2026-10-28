@@ -36,7 +36,7 @@ def main():
     ap.add_argument("--window", type=float, default=30.0, help="minutes")
     a = ap.parse_args()
     mine = [dict(t=when(r["time_utc"]), c=coin(r["symbol"]), d=r["direction"].strip().lower(), rule=r.get("rule", ""))
-            for r in csv.DictReader(open(a.mine))]
+            for r in csv.DictReader(open(a.mine)) if r.get("published", "1") != "0"]   # published flips only
     orig = [dict(t=when(r["time"], a.tz), c=coin(r["symbol"]), d=r["direction"].strip().lower(), rule=r.get("rule", ""))
             for r in csv.DictReader(open(a.original))]
     used, pairs, missed = set(), [], []

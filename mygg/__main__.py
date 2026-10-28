@@ -36,7 +36,9 @@ def main():
     s.add_argument("--once", action="store_true")
     s.add_argument("--rules", nargs="*", choices=sorted(RULES), default=["macd", "ema"],
                    help="bb is an unconfirmed placeholder, so it is off by default")
-    s.add_argument("--log", default="mygg_signals.csv")
+    s.add_argument("--log", default="mygg_flips.csv")
+    s.add_argument("--cooldown", type=int, default=4,
+                   help="candles before the same coin, rule and direction is published again (all flips are still logged)")
 
     a = ap.parse_args()
     if a.cmd == "validate":
@@ -59,7 +61,7 @@ def main():
         print(f"{len(rows)} rule flips written to {a.out}")
     else:
         live.scan([x[:-4] if x.endswith("USDT") else x for x in a.symbols], a.interval, log=a.log,
-                  rules=[RULES[r]() for r in a.rules], once=a.once)
+                  rules=[RULES[r]() for r in a.rules], once=a.once, cooldown=a.cooldown)
 
 
 if __name__ == "__main__":

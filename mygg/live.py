@@ -1,4 +1,5 @@
 """Live scanner on Binance USD-M futures public data (no keys). Paper only: it prints and logs signals."""
+import calendar
 import csv
 import json
 import os
@@ -51,11 +52,33 @@ def format_signal(sig):
             f"🛑 Stop Loss: {f(sig['stop'])}")
 
 
-def scan(symbols, interval=20, log="mygg_signals.csv", rules=DEFAULT_RULES, once=False):
-    cache, seen = {}, set()
+def _restore(log):
+    """Rebuild what was already logged so a restart does not repeat signals."""
+    seen, last_pub = set(), {}
+    if not os.path.exists(log):
+        return seen, last_pub
+    with open(log) as f:
+        for r in csv.DictReader(f):
+            try:
+                ms = calendar.timegm(time.strptime(r["time_utc"][:19], "%Y-%m-%d %H:%M:%S")) * 1000
+            except (ValueError, KeyError):
+                continue
+            start, side = ms - ms % BAR_MS, 1 if r["direction"] == "long" else -1
+            seen.add((r["symbol"], r["rule"], start, side))
+            if r.get("published", "1") != "0":
+                k = (r["symbol"], r["rule"], side)
+                last_pub[k] = max(last_pub.get(k, 0), start)
+    return seen, last_pub
+
+
+def scan(symbols, interval=20, log="mygg_flips.csv", rules=DEFAULT_RULES, once=False, cooldown=4):
+    """Log every raw flip; publish (print + Telegram) unless the same coin, rule and direction was
+    published within `cooldown` candles. The cooldown is a guess to tune against the original's behaviour."""
+    cache = {}
+    seen, last_pub = _restore(log)
     if not os.path.exists(log):
         with open(log, "w", newline="") as f:
-            csv.writer(f).writerow(["time_utc", "symbol", "rule", "direction", "price", "entry1", "stop"])
+            csv.writer(f).writerow(["time_utc", "symbol", "rule", "direction", "price", "entry1", "stop", "published"])
     while True:
         try:
             now = int(time.time() * 1000)
@@ -71,19 +94,22 @@ def scan(symbols, interval=20, log="mygg_signals.csv", rules=DEFAULT_RULES, once
                 closed = cache[key][1]
                 for rule in rules:
                     side = rule.flip(closed, prices[key])
-                    ident = (key, rule.name, start, side)
-                    if side and ident not in seen:
-                        seen.add(ident)
-                        sig = template.build(side, prices[key], ladder=True)
-                        sig.update(symbol=key, rule=rule.name, leverage=rule.leverage)
+                    if not side or (key, rule.name, start, side) in seen:
+                        continue
+                    seen.add((key, rule.name, start, side))
+                    publish = start - last_pub.get((key, rule.name, side), -10 ** 15) >= cooldown * BAR_MS
+                    sig = template.build(side, prices[key], ladder=True)
+                    sig.update(symbol=key, rule=rule.name, leverage=rule.leverage)
+                    if publish:
+                        last_pub[(key, rule.name, side)] = start
                         text = format_signal(sig)
                         print(text, "\n", flush=True)
                         send_telegram(text)
-                        with open(log, "a", newline="") as f:
-                            csv.writer(f).writerow([time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()), key, rule.name,
-                                                    sig["side"], prices[key], sig["entries"][0], sig["stop"]])
+                    with open(log, "a", newline="") as f:
+                        csv.writer(f).writerow([time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()), key, rule.name,
+                                                sig["side"], prices[key], sig["entries"][0], sig["stop"], int(publish)])
         except Exception as ex:                                 # network hiccup: keep going
-            print("scan error:", ex, flush=True)
+            print("scan error:", type(ex).__name__, flush=True)
         if once:
             return
         time.sleep(interval)

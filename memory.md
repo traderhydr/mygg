@@ -82,7 +82,7 @@ Entry value is entry 1 as published; `validate` derives M from it.
 - Timestamps for the 14 relay batches (A-N) in the chat history; only batch E (10 Oct 05:38 UTC, ATOM) is known.
 
 ## In progress / next
-1. Scanner + Cornix paper account running. Collect after 24h+: `mygg_signals.csv`, Cornix paper messages
+1. Scanner (now logging every raw flip to `mygg_flips.csv` with a `published` flag; 4-candle cooldown per coin/rule/direction is a guess to tune; restarts no longer repeat signals) + Cornix paper account running. Collect after 24h+: `mygg_flips.csv`, Cornix paper messages
    (entries, TP hits, stops), and the original bot's posts with times.
 2. Compare: recall, delay, skipped flips (filter), paper win rate / stops / drawdown.
 3. Fit the BB rule once batch times are known; then enable it in the scanner (20x).

@@ -28,10 +28,15 @@ published signals can be compared against it.
 Candles come from `tools/template_backtest.py fetch` (`data/<SYMBOL>.csv`).
 
 ## Where signals go
-`scan` prints to the terminal (or `scan.out` under nohup) and appends to `mygg_signals.csv`.
+`scan` prints to the terminal (or `scan.out` under nohup) and appends to `mygg_flips.csv`.
 To also get them in your own private Telegram chat, create a bot with @BotFather, send it a message,
 and put the token and your chat id in a file kept out of git:
 
     printf 'MYGG_TG_TOKEN=...\nMYGG_TG_CHAT=...\n' > ~/.mygg_env && chmod 600 ~/.mygg_env
     set -a; . ~/.mygg_env; set +a
     nohup python3 -m mygg scan --rules macd ema > scan.out 2>&1 &
+
+## Repeats
+Every flip is logged to `mygg_flips.csv` (column `published`). A signal is only published (printed and sent)
+if the same coin, rule and direction was not published within `--cooldown` candles (default 4, a guess), and a
+restart never repeats a flip already logged in the same candle.

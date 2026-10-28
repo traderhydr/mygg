@@ -22,6 +22,35 @@ class TemplateTests(unittest.TestCase):
         self.assertEqual(s["entries"][0], 83415.21)      # short enters at the bottom of the zone
 
 
+class ScanTests(unittest.TestCase):
+    def test_restart_and_cooldown_do_not_repeat_signals(self):
+        import os, tempfile, time
+        from unittest import mock
+        from mygg import live
+        from mygg.rules import EMACross
+        now = int(time.time() * 1000)
+        start = now - now % live.BAR_MS
+
+        def fake_get(path, **kw):
+            if path == "ticker/price":
+                return [{"symbol": "BTCUSDT", "price": "110.0"}]
+            p, k = 100.0, []
+            for j in range(300, 0, -1):
+                p *= 0.999
+                k.append([start - j * live.BAR_MS, 0, 0, 0, str(p), 0])
+            k.append([start, 0, 0, 0, str(p), 0])
+            return k
+
+        log = os.path.join(tempfile.mkdtemp(), "f.csv")
+        with mock.patch.object(live, "_get", fake_get), mock.patch.object(live, "send_telegram") as tg:
+            live.scan(["BTC"], once=True, log=log, rules=[EMACross()])
+            live.scan(["BTC"], once=True, log=log, rules=[EMACross()])      # restart in the same candle
+            self.assertEqual(tg.call_count, 1)
+        self.assertEqual(len(open(log).read().strip().splitlines()), 2)        # header + one flip
+        seen, last = live._restore(log)
+        self.assertEqual(last[("BTCUSDT", "EMA Cross", 1)], start)
+
+
 class FormatTests(unittest.TestCase):
     def test_arb_layout_matches_the_original_numbers(self):
         from mygg import live
