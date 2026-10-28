@@ -6,6 +6,7 @@ baseline simulate "enter at market + template ladder" at random times and
          directions, so the AI's pair/direction picks can be compared to chance
 score    run the same simulator on your own signals (csv: symbol,time_utc,direction[,entry])
 features market state (RSI, recent returns, volume, range position) at each signal time
+rule     test the "bounce inside a pullback" pattern seen in the signals against all times
 
 Standard library only. Intrabar order is unknown on 15m candles, so every result
 is shown twice: "pess" (adverse moves first) and "opt" (favourable moves first).
@@ -239,6 +240,40 @@ def features(path):
                   f"{r(4):6.2%} {r(12):6.2%} {r(48):6.2%}  {now/hi-1:10.2%}  {(now-lo)/(hi-lo):6.2f}  {vr:8.2f}")
 
 
+def rule(symbols, lev, fee, horizon, gap):
+    """Pattern from the six signals: last 1h and 3h move with the trade, last 12h against it,
+    and price 2-4% away from its 24h extreme (long: below the high, short: above the low).
+    Compare trades taken when the pattern is on with trades taken at every time."""
+    out = {1: ([], []), -1: ([], [])}   # side -> (pattern trades, all trades)
+    for sym in symbols:
+        try:
+            c = load(sym)
+        except FileNotFoundError:
+            continue
+        last_on = {1: -10**9, -1: -10**9}
+        for i in range(100, len(c) - horizon - 1, 4):
+            now = c[i][4]
+            r1, r3, r12 = now / c[i - 4][4] - 1, now / c[i - 12][4] - 1, now / c[i - 48][4] - 1
+            hi = max(x[2] for x in c[i - 96:i + 1])
+            lo = min(x[3] for x in c[i - 96:i + 1])
+            for side in (1, -1):
+                t = (c, i, side, now)
+                out[side][1].append(t)
+                if side == 1:
+                    on = r1 > 0 and r3 > 0 and r12 < 0 and -0.04 <= now / hi - 1 <= -0.02
+                else:
+                    on = r1 < 0 and r3 < 0 and r12 > 0 and 0.02 <= now / lo - 1 <= 0.04
+                if on and i - last_on[side] >= gap:
+                    out[side][0].append(t)
+                    last_on[side] = i
+    for side, name in ((1, "LONG"), (-1, "SHORT")):
+        pat, allt = out[side]
+        print(f"\n{name}: pattern on in {len(pat)} of {len(allt)} sampled times ({len(pat)/max(1,len(allt)):.1%})")
+        for mode in ("pess", "opt"):
+            summarize("pat " + mode[0], [simulate(*t, lev, fee, mode, horizon) for t in pat])
+            summarize("all " + mode[0], [simulate(*t, lev, fee, mode, horizon) for t in allt])
+
+
 def selftest():
     """ENA 28 Oct 2026: entry 1 0.20852, long, 20x. Expect E2, TP1, TP2, breakeven."""
     rows = [(0, .20671, .20898, .20654, .20797), (1, .20796, .20999, .20737, .20970),
@@ -251,7 +286,7 @@ def selftest():
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["fetch", "baseline", "score", "features", "selftest"])
+    ap.add_argument("cmd", choices=["fetch", "baseline", "score", "features", "rule", "selftest"])
     ap.add_argument("--symbols", nargs="+", default=DEFAULT_SYMBOLS)
     ap.add_argument("--days", type=int, default=30)
     ap.add_argument("--per", type=int, default=200, help="random trades per symbol")
@@ -270,5 +305,7 @@ if __name__ == "__main__":
         score(a.signals, a.lev, a.fee, h)
     elif a.cmd == "features":
         features(a.signals)
+    elif a.cmd == "rule":
+        rule(a.symbols, a.lev, a.fee, h, 16)
     else:
         selftest()
