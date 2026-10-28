@@ -6,6 +6,9 @@ import glob
 import os
 
 from . import live, replay
+from .rules import BBBreak, EMACross, MACDCross
+
+RULES = {"macd": MACDCross, "ema": EMACross, "bb": BBBreak}
 
 
 def main():
@@ -31,6 +34,9 @@ def main():
     s.add_argument("--symbols", nargs="*", default=live.DEFAULT_WATCHLIST)
     s.add_argument("--interval", type=int, default=20)
     s.add_argument("--once", action="store_true")
+    s.add_argument("--rules", nargs="*", choices=sorted(RULES), default=["macd", "ema"],
+                   help="bb is an unconfirmed placeholder, so it is off by default")
+    s.add_argument("--log", default="mygg_signals.csv")
 
     a = ap.parse_args()
     if a.cmd == "validate":
@@ -52,7 +58,8 @@ def main():
                             x["symbol"], x["rule"], "long" if x["side"] > 0 else "short", x["price"]])
         print(f"{len(rows)} rule flips written to {a.out}")
     else:
-        live.scan([s_ if s_.endswith("USDT") is False else s_[:-4] for s_ in a.symbols], a.interval, once=a.once)
+        live.scan([x[:-4] if x.endswith("USDT") else x for x in a.symbols], a.interval, log=a.log,
+                  rules=[RULES[r]() for r in a.rules], once=a.once)
 
 
 if __name__ == "__main__":

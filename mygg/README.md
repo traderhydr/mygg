@@ -22,7 +22,7 @@ published signals can be compared against it.
     python3 -m unittest discover -s tests
     python3 -m mygg validate signals.csv --data data   # real signals vs the rules
     python3 -m mygg replay --data data --out replay.csv
-    python3 -m mygg scan --once                        # needs access to Binance public data
+    python3 -m mygg scan --rules macd ema              # live paper scan; needs access to Binance public data
 
 `signals.csv` columns: `symbol,time_utc,direction,entry[,rule]` where entry is entry 1 as published.
 Candles come from `tools/template_backtest.py fetch` (`data/<SYMBOL>.csv`).
