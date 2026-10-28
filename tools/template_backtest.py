@@ -5,6 +5,7 @@ fetch    download 15m futures candles into ./data (Binance, Bybit fallback)
 baseline simulate "enter at market + template ladder" at random times and
          directions, so the AI's pair/direction picks can be compared to chance
 score    run the same simulator on your own signals (csv: symbol,time_utc,direction[,entry])
+features market state (RSI, recent returns, volume, range position) at each signal time
 
 Standard library only. Intrabar order is unknown on 15m candles, so every result
 is shown twice: "pess" (adverse moves first) and "opt" (favourable moves first).
@@ -207,6 +208,37 @@ def score(path, lev, fee, horizon):
     run(trades, lev, fee, horizon, f"YOUR SIGNALS, {len(trades)} trades")
 
 
+def rsi(closes, n=14):
+    d = [b - a for a, b in zip(closes, closes[1:])][-n:]
+    g = sum(x for x in d if x > 0) / n
+    l = -sum(x for x in d if x < 0) / n
+    return 100.0 if l == 0 else 100 - 100 / (1 + g / l)
+
+
+def features(path):
+    """Market state just before each signal. Uses completed candles plus the entry price as 'now'."""
+    print("symbol    time_utc          side   rsi14  ret1h  ret3h ret12h  from24hHigh  pos24h  vol_ratio")
+    with open(path) as f:
+        for row in csv.DictReader(f):
+            c = load(row["symbol"])
+            t = int(dt.datetime.strptime(row["time_utc"], "%Y-%m-%d %H:%M")
+                    .replace(tzinfo=dt.timezone.utc).timestamp() * 1000)
+            i = max(k for k in range(len(c)) if c[k][0] <= t)
+            if i < 100:
+                print(row["symbol"], row["time_utc"], "not enough history in data/")
+                continue
+            now = float(row["entry"]) if row.get("entry") else c[i][4]
+            closes = [x[4] for x in c[:i]] + [now]
+            win = c[i - 96:i]
+            hi, lo = max(x[2] for x in win + [c[i]]), min(x[3] for x in win + [c[i]])
+            with open(f"{DATA}/{row['symbol']}.csv") as vf:
+                v = [float(r["v"]) for r in csv.DictReader(vf)]
+            vr = (sum(v[i - 4:i]) / 4) / (sum(v[i - 52:i - 4]) / 48)
+            r = lambda n: now / closes[-1 - n] - 1
+            print(f"{row['symbol']:9s} {row['time_utc']}  {row['direction']:5s} {rsi(closes):5.1f} "
+                  f"{r(4):6.2%} {r(12):6.2%} {r(48):6.2%}  {now/hi-1:10.2%}  {(now-lo)/(hi-lo):6.2f}  {vr:8.2f}")
+
+
 def selftest():
     """ENA 28 Oct 2026: entry 1 0.20852, long, 20x. Expect E2, TP1, TP2, breakeven."""
     rows = [(0, .20671, .20898, .20654, .20797), (1, .20796, .20999, .20737, .20970),
@@ -219,7 +251,7 @@ def selftest():
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["fetch", "baseline", "score", "selftest"])
+    ap.add_argument("cmd", choices=["fetch", "baseline", "score", "features", "selftest"])
     ap.add_argument("--symbols", nargs="+", default=DEFAULT_SYMBOLS)
     ap.add_argument("--days", type=int, default=30)
     ap.add_argument("--per", type=int, default=200, help="random trades per symbol")
@@ -236,5 +268,7 @@ if __name__ == "__main__":
         baseline(a.symbols, a.per, a.lev, a.fee, h, a.seed)
     elif a.cmd == "score":
         score(a.signals, a.lev, a.fee, h)
+    elif a.cmd == "features":
+        features(a.signals)
     else:
         selftest()
