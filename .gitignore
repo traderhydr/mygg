@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+data/
+replay.csv
+mygg_signals.csv
