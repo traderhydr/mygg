@@ -54,11 +54,11 @@ def ema(v, n):
     return out
 
 
-def macd(closes):
-    f, s = ema(closes, FAST), ema(closes, SLOW)
+def macd(closes, fast=FAST, slow=SLOW, sig=SIG):
+    f, s = ema(closes, fast), ema(closes, slow)
     m = [a - b if a is not None and b is not None else None for a, b in zip(f, s)]
     valid = [x for x in m if x is not None]
-    sg_v = ema(valid, SIG)
+    sg_v = ema(valid, sig)
     sg = [None] * (len(m) - len(valid)) + sg_v
     h = [a - b if a is not None and b is not None else None for a, b in zip(m, sg)]
     return m, sg, h
