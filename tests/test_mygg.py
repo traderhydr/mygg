@@ -46,5 +46,24 @@ class RuleTests(unittest.TestCase):
         self.assertEqual(ix.ema(vals, 5)[-1], 1.0)
 
 
+class NotifyTests(unittest.TestCase):
+    def test_telegram_only_with_env_and_hides_token(self):
+        import os
+        from unittest import mock
+        from mygg import live
+        with mock.patch.dict(os.environ, {}, clear=True):
+            self.assertFalse(live.send_telegram("hi"))
+        env = {"MYGG_TG_TOKEN": "123:SECRET", "MYGG_TG_CHAT": "42"}
+        with mock.patch.dict(os.environ, env, clear=True), mock.patch("urllib.request.urlopen") as op:
+            self.assertTrue(live.send_telegram("hi"))
+            url, data = op.call_args[0][0], op.call_args[0][1]
+            self.assertIn("bot123:SECRET/sendMessage", url)
+            self.assertIn(b"chat_id=42", data)
+        with mock.patch.dict(os.environ, env, clear=True), mock.patch("urllib.request.urlopen", side_effect=OSError("boom")), \
+                mock.patch("builtins.print") as pr:
+            self.assertFalse(live.send_telegram("hi"))
+            self.assertNotIn("SECRET", " ".join(map(str, pr.call_args[0])))
+
+
 if __name__ == "__main__":
     unittest.main()

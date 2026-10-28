@@ -26,3 +26,12 @@ published signals can be compared against it.
 
 `signals.csv` columns: `symbol,time_utc,direction,entry[,rule]` where entry is entry 1 as published.
 Candles come from `tools/template_backtest.py fetch` (`data/<SYMBOL>.csv`).
+
+## Where signals go
+`scan` prints to the terminal (or `scan.out` under nohup) and appends to `mygg_signals.csv`.
+To also get them in your own private Telegram chat, create a bot with @BotFather, send it a message,
+and put the token and your chat id in a file kept out of git:
+
+    printf 'MYGG_TG_TOKEN=...\nMYGG_TG_CHAT=...\n' > ~/.mygg_env && chmod 600 ~/.mygg_env
+    set -a; . ~/.mygg_env; set +a
+    nohup python3 -m mygg scan --rules macd ema > scan.out 2>&1 &

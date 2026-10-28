@@ -21,6 +21,20 @@ def _get(path, **params):
         return json.load(r)
 
 
+def send_telegram(text):
+    """Send to your own chat if MYGG_TG_TOKEN and MYGG_TG_CHAT are set. Never prints the token."""
+    token, chat = os.environ.get("MYGG_TG_TOKEN"), os.environ.get("MYGG_TG_CHAT")
+    if not token or not chat:
+        return False
+    data = urllib.parse.urlencode({"chat_id": chat, "text": text}).encode()
+    try:
+        urllib.request.urlopen(f"https://api.telegram.org/bot{token}/sendMessage", data, timeout=15)
+        return True
+    except Exception as ex:
+        print("telegram send failed:", type(ex).__name__, getattr(ex, "code", ""), flush=True)
+        return False
+
+
 def format_signal(sig):
     arrow = "LONG" if sig["side"] == "long" else "SHORT"
     lo, hi = sig["zone"]
@@ -55,7 +69,9 @@ def scan(symbols, interval=20, log="mygg_signals.csv", rules=DEFAULT_RULES, once
                         seen.add(ident)
                         sig = template.build(side, prices[key])
                         sig.update(symbol=key, rule=rule.name, leverage=rule.leverage)
-                        print(format_signal(sig), "\n", flush=True)
+                        text = format_signal(sig)
+                        print(text, "\n", flush=True)
+                        send_telegram(text)
                         with open(log, "a", newline="") as f:
                             csv.writer(f).writerow([time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()), key, rule.name,
                                                     sig["side"], prices[key], sig["entries"][0], sig["stop"]])
