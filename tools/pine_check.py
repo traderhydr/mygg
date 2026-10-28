@@ -85,7 +85,7 @@ def main():
     a = ap.parse_args()
     presets = {p.split("=")[0]: tuple(float(x) for x in p.split("=")[1].split(",")) for p in a.preset}
 
-    print(f"{'symbol':9s} {'time_utc':16s} {'side':5s} {'bb':>9s} {'z':>6s}  pine signal within -2..+1 candles"
+    print(f"{'symbol':9s} {'time_utc':16s} {'side':5s} {'bb':>9s} {'z':>6s} {'z@entry':>8s}  pine signal within -2..+1 candles"
           f"   atr-implied TP1/TP4/SL % (posted: 0.60/5.64/5.15)")
     seen = {}
     with open(a.signals) as f:
@@ -102,12 +102,18 @@ def main():
             i = max(k for k in range(len(c)) if c[k][0] <= t)
             near = [f"{sig[k]}@{k - i:+d}" for k in range(i - 2, i + 2) if k in sig] or ["none"]
             zi = f"{z[i]:+.2f}" if z[i] is not None else "n/a"
+            ze = "n/a"
+            if row.get("entry") and i >= n:
+                # z-score if the live entry price, not the candle's final close, were "now"
+                w = [x[4] for x in c[i - n + 1:i]] + [float(row["entry"])]
+                sd = st.pstdev(w)
+                ze = f"{(w[-1] - sum(w) / n) / sd:+.2f}" if sd else "n/a"
             if at[i]:
                 p = at[i] / c[i][4] * 100
                 lv = f"{TP_MULT[0]*p:.2f}/{TP_MULT[3]*p:.2f}/{SL_MULT*p:.2f}"
             else:
                 lv = "n/a"
-            print(f"{sym:9s} {row['time_utc']:16s} {row['direction']:5s} {f'{n}/{dev}':>9s} {zi:>6s}  "
+            print(f"{sym:9s} {row['time_utc']:16s} {row['direction']:5s} {f'{n}/{dev}':>9s} {zi:>6s} {ze:>8s}  "
                   f"{','.join(near):34s} {lv}")
     print("\nHow often the script fires on each symbol's data:")
     for sym, (c, sig, z, at) in seen.items():
