@@ -36,11 +36,19 @@ def replay_symbol(symbol, candles, rules=DEFAULT_RULES, start=100):
 
 
 def validate(signals_path, data_dir="data", rules=DEFAULT_RULES):
-    """Real signals (symbol,time_utc,direction,entry[,rule]) vs what the rules say at that moment."""
+    """Real signals (symbol,time_utc,direction,entry[,rule]) vs what the rules say at that moment.
+
+    Status per signal:
+      flip@M       the rule flips at the signal's live price M
+      flip in bar  it flips at the candle's high (long) / low (short) but not at M: price crossed the
+                   trigger and came back before the post, or the rule latches within the candle
+      already      the state had already flipped before this candle (an older cross)
+      no           none of the above
+    """
     rows = list(csv.DictReader(open(signals_path)))
     byname = {r.name: r for r in rules}
-    hits, totals, errs = {}, {}, {}
-    print(f"{'symbol':10s} {'time_utc':16s} {'side':5s} {'rule':11s} flip  live-price M vs solved trigger")
+    hits, totals = {}, {}
+    print(f"{'symbol':10s} {'time_utc':16s} {'side':5s} {'rule':11s} {'status':12s} M vs solved trigger")
     for row in rows:
         candles = load(f"{data_dir}/{row['symbol']}.csv")
         t = int(dt.datetime.strptime(row["time_utc"], "%Y-%m-%d %H:%M")
@@ -49,13 +57,22 @@ def validate(signals_path, data_dir="data", rules=DEFAULT_RULES):
         side = 1 if row["direction"].strip().lower() == "long" else -1
         m = float(row["entry"]) / (1 + side * template.ZONE)     # entry 1 is 0.15% beyond the live price
         closed = [c[4] for c in candles[max(0, i - WINDOW):i]]
+        extreme = candles[i][2] if side > 0 else candles[i][3]
         names = [row["rule"]] if row.get("rule") else list(byname)
         for name in names:
             rule = byname[name]
-            ok = rule.flip(closed, m) == side
+            d0 = rule.value(closed[:-1], closed[-1])
+            if rule.flip(closed, m) == side:
+                status = "flip@M"
+            elif rule.flip(closed, extreme) == side:
+                status = "flip in bar"
+            elif d0 is not None and d0 * side > 0:
+                status = "already"
+            else:
+                status = "no"
             trig = rule.trigger_price(closed)
             note = f"M {m:.6g} vs {trig:.6g} ({(m / trig - 1) * 1e4:+.0f} bp)" if trig else f"M {m:.6g}"
-            print(f"{row['symbol']:10s} {row['time_utc']:16s} {row['direction']:5s} {name:11s} {'YES' if ok else 'no ':4s}  {note}")
+            print(f"{row['symbol']:10s} {row['time_utc']:16s} {row['direction']:5s} {name:11s} {status:12s} {note}")
             totals[name] = totals.get(name, 0) + 1
-            hits[name] = hits.get(name, 0) + ok
-    print("\nPer rule: " + ", ".join(f"{n} {hits[n]}/{totals[n]}" for n in totals))
+            hits[name] = hits.get(name, 0) + (status in ("flip@M", "flip in bar"))
+    print("\nFlipped in the posting candle: " + ", ".join(f"{n} {hits[n]}/{totals[n]}" for n in totals))
