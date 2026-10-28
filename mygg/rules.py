@@ -12,7 +12,7 @@ LEVERAGE = {"MACD Cross": 25, "EMA Cross": 15, "BB": 20}
 class Rule:
     name = ""
     leverage = 0
-    min_history = 80
+    min_history = 35
 
     def value(self, closed, live):
         raise NotImplementedError
