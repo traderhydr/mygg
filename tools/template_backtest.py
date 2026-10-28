@@ -7,6 +7,7 @@ baseline simulate "enter at market + template ladder" at random times and
 score    run the same simulator on your own signals (csv: symbol,time_utc,direction[,entry])
 features market state (RSI, recent returns, volume, range position) at each signal time
 rule     test the "bounce inside a pullback" pattern seen in the signals against all times
+flip     simulate each of your signals in BOTH directions to see whether direction mattered
 
 Standard library only. Intrabar order is unknown on 15m candles, so every result
 is shown twice: "pess" (adverse moves first) and "opt" (favourable moves first).
@@ -274,6 +275,28 @@ def rule(symbols, lev, fee, horizon, gap):
             summarize("all " + mode[0], [simulate(*t, lev, fee, mode, horizon) for t in allt])
 
 
+def flip(path, lev, fee, horizon):
+    """Each signal as posted vs the opposite direction, same entry and template."""
+    print("symbol    time_utc          posted   posted result            opposite result")
+    wins = [0, 0]
+    n = 0
+    with open(path) as f:
+        for row in csv.DictReader(f):
+            c = load(row["symbol"])
+            t = int(dt.datetime.strptime(row["time_utc"], "%Y-%m-%d %H:%M")
+                    .replace(tzinfo=dt.timezone.utc).timestamp() * 1000)
+            i = max(k for k in range(len(c)) if c[k][0] <= t)
+            side = 1 if row["direction"].strip().lower() == "long" else -1
+            p1 = float(row["entry"]) if row.get("entry") else c[i][4]
+            res = [simulate(c, i, sd, p1, lev, fee, "pess", horizon) for sd in (side, -side)]
+            n += 1
+            for k in (0, 1):
+                wins[k] += res[k]["tp1"]
+            fmt = lambda r: f"{'TP1' if r['tp1'] else 'no TP1':6s} {r['reason']:9s} {r['roe']:7.1%}"
+            print(f"{row['symbol']:9s} {row['time_utc']}  {row['direction']:6s}   {fmt(res[0])}   {fmt(res[1])}")
+    print(f"\nTP1 reached: as posted {wins[0]}/{n}, opposite direction {wins[1]}/{n}")
+
+
 def selftest():
     """ENA 28 Oct 2026: entry 1 0.20852, long, 20x. Expect E2, TP1, TP2, breakeven."""
     rows = [(0, .20671, .20898, .20654, .20797), (1, .20796, .20999, .20737, .20970),
@@ -286,7 +309,7 @@ def selftest():
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["fetch", "baseline", "score", "features", "rule", "selftest"])
+    ap.add_argument("cmd", choices=["fetch", "baseline", "score", "features", "rule", "flip", "selftest"])
     ap.add_argument("--symbols", nargs="+", default=DEFAULT_SYMBOLS)
     ap.add_argument("--days", type=int, default=30)
     ap.add_argument("--per", type=int, default=200, help="random trades per symbol")
@@ -305,6 +328,8 @@ if __name__ == "__main__":
         score(a.signals, a.lev, a.fee, h)
     elif a.cmd == "features":
         features(a.signals)
+    elif a.cmd == "flip":
+        flip(a.signals, a.lev, a.fee, h)
     elif a.cmd == "rule":
         rule(a.symbols, a.lev, a.fee, h, 16)
     else:
