@@ -15,6 +15,12 @@ def main():
     v = sub.add_parser("validate", help="check real signals against the rules (symbol,time_utc,direction,entry[,rule])")
     v.add_argument("signals")
     v.add_argument("--data", default="data")
+    v.add_argument("--window", type=int, default=replay.WINDOW, help="closed candles fed to the indicators")
+
+    f = sub.add_parser("fit", help="try several history windows to see which reproduces the real signals")
+    f.add_argument("signals")
+    f.add_argument("--data", default="data")
+    f.add_argument("--windows", type=int, nargs="*", default=[40, 50, 60, 80, 100, 150, 200, 300, 500, 1000])
 
     r = sub.add_parser("replay", help="list every rule flip in stored candles")
     r.add_argument("--data", default="data")
@@ -28,7 +34,9 @@ def main():
 
     a = ap.parse_args()
     if a.cmd == "validate":
-        replay.validate(a.signals, a.data)
+        replay.validate(a.signals, a.data, window=a.window)
+    elif a.cmd == "fit":
+        replay.fit(a.signals, a.data, windows=a.windows)
     elif a.cmd == "replay":
         since = int(dt.datetime.strptime(a.since, "%Y-%m-%d %H:%M").replace(tzinfo=dt.timezone.utc).timestamp() * 1000) if a.since else 0
         rows = []
