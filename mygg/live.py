@@ -35,10 +35,13 @@ def send_telegram(text):
         return False
 
 
+HEADER = "⚡ SABBOT REAL ⚡"
+
+
 def format_signal(sig):
     """Cornix-readable layout (pair, exchange, direction, leverage, entries, targets, stop)."""
     f = template.fmt
-    return (f"⚡ MYGG PAPER SIGNAL ⚡\n\n"
+    return (f"{HEADER}\n\n"
             f"🪙 Pair: {sig['symbol']}\n"
             f"🏦 Exchange: Binance Futures\n"
             f"🧭 Direction: {sig['side'].upper()}\n"

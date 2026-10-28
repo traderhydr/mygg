@@ -6,7 +6,7 @@ Last updated: 2026-10-28 (session `claude/peaceful-wozniak-o9b7ec`). Read this f
 - Work out how GG-SHOT's Telegram signals are generated (seen through the original bot and relayed in
   other channels, one of which re-labels them "RAPID SCALPERS"), and build `mygg`, a paper-trading scanner
   that reproduces them. Purpose: measure how close the analysis gets.
-- Agreed limits: personal research, paper only. mygg uses its own header ("MYGG PAPER SIGNAL"), not the
+- Agreed limits: personal research, paper only. mygg uses its own header ("SABBOT REAL", set by the owner; the account behind it is still paper), not the
   provider's or the relay's branding. No redistributing the provider's signals, no selling. The relay
   channels (GG_Shot_Leak and the promo links in it) look like unauthorised redistribution of a paid service.
 - The owner's Cornix account attached to their private channel is a **paper** account (confirmed). Keep it so.

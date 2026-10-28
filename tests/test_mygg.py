@@ -28,6 +28,7 @@ class FormatTests(unittest.TestCase):
         sig = template.build(1, 0.16682, ladder=True)
         sig.update(symbol="ARBUSDT", leverage=25)
         text = live.format_signal(sig)
+        self.assertTrue(text.startswith("⚡ SABBOT REAL ⚡"))
         self.assertIn("🪙 Pair: ARBUSDT", text)
         self.assertIn("🧭 Direction: LONG", text)
         self.assertIn("⚙️ Leverage: Cross 25X", text)
