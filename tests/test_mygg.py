@@ -42,11 +42,13 @@ class ScanTests(unittest.TestCase):
             return k
 
         log = os.path.join(tempfile.mkdtemp(), "f.csv")
-        with mock.patch.object(live, "_get", fake_get), mock.patch.object(live, "send_telegram") as tg:
+        with mock.patch.object(live, "_get", fake_get), mock.patch.object(live, "send_telegram") as tg, \
+                mock.patch("builtins.print"):
             live.scan(["BTC"], once=True, log=log, rules=[EMACross()])
             live.scan(["BTC"], once=True, log=log, rules=[EMACross()])      # restart in the same candle
             self.assertEqual(tg.call_count, 1)
-        self.assertEqual(len(open(log).read().strip().splitlines()), 2)        # header + one flip
+        with open(log) as f:
+            self.assertEqual(len(f.read().strip().splitlines()), 2)            # header + one flip
         seen, last = live._restore(log)
         self.assertEqual(last[("BTCUSDT", "EMA Cross", 1)], start)
 
