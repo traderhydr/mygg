@@ -126,6 +126,9 @@ tests a much more active version of the rules than the original. Open decision f
 of the raw rules, or add a volume filter before the freeze (unknown what the original filters on). Ask the owner how
 many signals the original bot sent on a typical day, and look at per-hour and per-coin counts in `mygg_flips.csv`.
 Also check Cornix's concurrent-trade limits: hundreds of 15-25x positions on one paper balance is not realistic.
+**Decision (owner, 2026-10-29): keep it simple, change nothing, run the month as is.** So the month measures the
+raw MACD/EMA rules at about 13 published signals an hour, not the original's filtered feed. Read the final report
+with that in mind; the original's own volume is still unknown.
 
 ## Resume checklist
 1. `git pull`, run the tests, read this file.
