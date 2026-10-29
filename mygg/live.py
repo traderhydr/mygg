@@ -23,17 +23,21 @@ def _get(path, **params):
 
 
 def send_telegram(text):
-    """Send to your own chat if MYGG_TG_TOKEN and MYGG_TG_CHAT are set. Never prints the token."""
-    token, chat = os.environ.get("MYGG_TG_TOKEN"), os.environ.get("MYGG_TG_CHAT")
-    if not token or not chat:
+    """Send to your own chats. MYGG_TG_TOKEN is the bot token; MYGG_TG_CHAT is one chat id or several
+    separated by commas. A failure on one chat does not stop the others. Never prints the token."""
+    token = os.environ.get("MYGG_TG_TOKEN")
+    chats = [c.strip() for c in os.environ.get("MYGG_TG_CHAT", "").split(",") if c.strip()]
+    if not token or not chats:
         return False
-    data = urllib.parse.urlencode({"chat_id": chat, "text": text}).encode()
-    try:
-        urllib.request.urlopen(f"https://api.telegram.org/bot{token}/sendMessage", data, timeout=15)
-        return True
-    except Exception as ex:
-        print("telegram send failed:", type(ex).__name__, getattr(ex, "code", ""), flush=True)
-        return False
+    sent = False
+    for chat in chats:
+        data = urllib.parse.urlencode({"chat_id": chat, "text": text}).encode()
+        try:
+            urllib.request.urlopen(f"https://api.telegram.org/bot{token}/sendMessage", data, timeout=15)
+            sent = True
+        except Exception as ex:
+            print("telegram send failed:", chat, type(ex).__name__, getattr(ex, "code", ""), flush=True)
+    return sent
 
 
 HEADER = "⚡ SABBOT REAL ⚡"

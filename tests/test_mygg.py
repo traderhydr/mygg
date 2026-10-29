@@ -22,6 +22,23 @@ class TemplateTests(unittest.TestCase):
         self.assertEqual(s["entries"][0], 83415.21)      # short enters at the bottom of the zone
 
 
+class MultiChatTests(unittest.TestCase):
+    def test_several_chats_and_one_failure_does_not_block_the_rest(self):
+        import os
+        from unittest import mock
+        from mygg import live
+        env = {"MYGG_TG_TOKEN": "123:SECRET", "MYGG_TG_CHAT": "-1001, -1002 ,-1003"}
+        with mock.patch.dict(os.environ, env, clear=True), \
+                mock.patch("urllib.request.urlopen", side_effect=[OSError("x"), None, None]) as op, \
+                mock.patch("builtins.print") as pr:
+            self.assertTrue(live.send_telegram("hi"))
+        self.assertEqual(op.call_count, 3)
+        sent = [c[0][1] for c in op.call_args_list]
+        self.assertIn(b"chat_id=-1002", sent[1])
+        self.assertIn(b"chat_id=-1003", sent[2])
+        self.assertNotIn("SECRET", " ".join(str(a) for c in pr.call_args_list for a in c[0]))
+
+
 class ScanTests(unittest.TestCase):
     def test_restart_and_cooldown_do_not_repeat_signals(self):
         import os, tempfile, time

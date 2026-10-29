@@ -12,7 +12,8 @@ Read this first when resuming.
   behind it is still paper. No GG-SHOT or relay branding, no redistributing the provider's signals, no selling.
   The relay channels (GG_Shot_Leak and the promo links in it) look like unauthorised redistribution of a paid service.
 - The owner's Cornix account attached to their private channel is a **paper** account (confirmed). Keep it so.
-- Secrets (`MYGG_TG_TOKEN`, `MYGG_TG_CHAT`) live only in `~/.mygg_env` on the owner's instance. Never ask for
+- Secrets (`MYGG_TG_TOKEN`, `MYGG_TG_CHAT`; the chat variable may list several ids separated by commas, added
+  2026-10-29, delivery only, no effect on the rules) live only in `~/.mygg_env` on the owner's instance. Never ask for
   or store them in chat or the repo.
 
 ## Environment
