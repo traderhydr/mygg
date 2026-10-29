@@ -53,9 +53,9 @@ def format_signal(sig):
 
 def _restore(log):
     """Rebuild what was already logged so a restart does not repeat signals."""
-    seen, last_pub = set(), {}
+    seen, last_pub, in_candle = set(), {}, set()
     if not os.path.exists(log):
-        return seen, last_pub
+        return seen, last_pub, in_candle
     with open(log) as f:
         for r in csv.DictReader(f):
             try:
@@ -67,14 +67,16 @@ def _restore(log):
             if r.get("published", "1") != "0":
                 k = (r["symbol"], r["rule"], side)
                 last_pub[k] = max(last_pub.get(k, 0), start)
-    return seen, last_pub
+                in_candle.add((r["symbol"], start))
+    return seen, last_pub, in_candle
 
 
 def scan(symbols, interval=20, log="mygg_flips.csv", rules=DEFAULT_RULES, once=False, cooldown=4):
     """Log every raw flip; publish (print + Telegram) unless the same coin, rule and direction was
-    published within `cooldown` candles. The cooldown is a guess to tune against the original's behaviour."""
+    published within `cooldown` candles, or the coin already has a published signal in this candle (the
+    original's batches never repeat a coin). The cooldown is a guess to tune against the original."""
     cache = {}
-    seen, last_pub = _restore(log)
+    seen, last_pub, in_candle = _restore(log)
     if not os.path.exists(log):
         with open(log, "w", newline="") as f:
             csv.writer(f).writerow(["time_utc", "symbol", "rule", "direction", "price", "entry1", "stop", "published"])
@@ -96,11 +98,13 @@ def scan(symbols, interval=20, log="mygg_flips.csv", rules=DEFAULT_RULES, once=F
                     if not side or (key, rule.name, start, side) in seen:
                         continue
                     seen.add((key, rule.name, start, side))
-                    publish = start - last_pub.get((key, rule.name, side), -10 ** 15) >= cooldown * BAR_MS
+                    publish = (start - last_pub.get((key, rule.name, side), -10 ** 15) >= cooldown * BAR_MS
+                               and (key, start) not in in_candle)         # one published signal per coin per candle
                     sig = template.build(side, prices[key], ladder=True)
                     sig.update(symbol=key, rule=rule.name, leverage=rule.leverage)
                     if publish:
                         last_pub[(key, rule.name, side)] = start
+                        in_candle.add((key, start))
                         text = format_signal(sig)
                         print(text, "\n", flush=True)
                         send_telegram(text)
