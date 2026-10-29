@@ -119,6 +119,14 @@ in this record) and will run the frozen set-up for a month before deciding next 
   counts when stop-outs and drawdown are included and the result beats the same-month baseline. One month is one
   market regime; a trending month flatters one direction. Need roughly 100 independent clusters to say much.
 
+## Volume warning (found 2026-10-29)
+`status.sh` showed 361 flips logged and 282 published in about 21 hours of 29 Oct UTC (about 13 published per hour,
+around 300 a day over ~39 coins). The original bot very probably publishes far fewer. The month-long run therefore
+tests a much more active version of the rules than the original. Open decision for the owner: accept it as a test
+of the raw rules, or add a volume filter before the freeze (unknown what the original filters on). Ask the owner how
+many signals the original bot sent on a typical day, and look at per-hour and per-coin counts in `mygg_flips.csv`.
+Also check Cornix's concurrent-trade limits: hundreds of 15-25x positions on one paper balance is not realistic.
+
 ## Resume checklist
 1. `git pull`, run the tests, read this file.
 2. Check the scanner (`pgrep -f "mygg scan"`, `tail scan.out`, `tail mygg_flips.csv`).
