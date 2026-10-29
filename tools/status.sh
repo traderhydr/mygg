@@ -13,7 +13,7 @@ else
   echo "no heartbeat file yet (restart the scanner so it runs the latest code)"
 fi
 if [ -f mygg_flips.csv ]; then
-  echo "== flips today (UTC $today): $(grep -c "^$today" mygg_flips.csv) logged, $(grep "^$today" mygg_flips.csv | awk -F, '$8==1' | wc -l) published"
+  echo "== flips today (UTC $today): $(grep -c "^$today" mygg_flips.csv) logged, $(tr -d '\r' < mygg_flips.csv | grep "^$today" | awk -F, '$8==1' | wc -l) published"
   echo "== last 5 flips"; tail -5 mygg_flips.csv
 fi
 echo "== problems in scan.out (last 5)"
