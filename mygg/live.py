@@ -40,11 +40,10 @@ HEADER = "⚡ SABBOT REAL ⚡"
 
 
 def format_signal(sig):
-    """Cornix-readable layout (pair, exchange, direction, leverage, entries, targets, stop)."""
+    """Cornix-readable layout (pair, direction, leverage, entries, targets, stop)."""
     f = template.fmt
     return (f"{HEADER}\n\n"
             f"🪙 Pair: {sig['symbol']}\n"
-            f"🏦 Exchange: Binance Futures\n"
             f"🧭 Direction: {sig['side'].upper()}\n"
             f"⚙️ Leverage: Cross {sig['leverage']}X\n"
             f"🎯 Entry: {'-'.join(f(p) for p in sig['entries'])}\n"

@@ -61,6 +61,7 @@ class FormatTests(unittest.TestCase):
         text = live.format_signal(sig)
         self.assertTrue(text.startswith("⚡ SABBOT REAL ⚡"))
         self.assertIn("🪙 Pair: ARBUSDT", text)
+        self.assertNotIn("Exchange", text)
         self.assertIn("🧭 Direction: LONG", text)
         self.assertIn("⚙️ Leverage: Cross 25X", text)
         self.assertIn("🎯 Entry: 0.16707-0.16657-0.16252-0.15969", text)
