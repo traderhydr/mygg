@@ -1,6 +1,7 @@
 # mygg project memory
 
-Last updated: 2026-10-29. Checkpoint tag: `checkpoint-2026-10-29` (branch `claude/peaceful-wozniak-o9b7ec`).
+Last updated: 2026-10-29. Checkpoint commit: `075aaf6` on branch `claude/peaceful-wozniak-o9b7ec` (a git tag could not be
+pushed from the cloud session; on the instance run `git tag checkpoint-2026-10-29 075aaf6` if you want one).
 Read this first when resuming.
 
 ## Goal and ground rules
@@ -104,7 +105,7 @@ Entry value is entry 1 as published; `validate` derives M from it.
 The owner reports the paper trades look highly accurate and profitable so far (early, unverified, no stop data yet
 in this record) and will run the frozen set-up for a month before deciding next steps.
 - **Freeze:** do not change rules, template, cooldown, header or watchlist during the month; note the date of any
-  forced fix (the checkpoint tag is the reference version). Do not move Cornix to a live account.
+  forced fix (commit `075aaf6` is the reference version). Do not move Cornix to a live account.
 - **Keep:** `mygg_flips.csv` (never delete), `scan.out`, the Cornix paper history (export the channel weekly as JSON),
   and optionally `original.csv` (time, symbol, direction, rule of the original bot's posts) for `tools/compare.py`.
 - **Report at the end, in this order:** (1) published signals and independent clusters (signals within 30 minutes
