@@ -37,6 +37,8 @@ Read this first when resuming.
   Loss. No exchange line, no disclaimer. Levels from `mygg/template.py`.
 - Old log `mygg_signals.csv` (before the cooldown and layout changes) is kept for reference.
 
+- 2026-10-29: a heartbeat file (`mygg_heartbeat`) and `tools/status.sh` were added for monitoring. Neither changes a signal.
+
 ## Repo layout
 - `mygg/`: `indicators.py`, `rules.py`, `template.py` (levels + `fmt`), `replay.py` (`validate`, `fit`, replay),
   `live.py` (scanner, Telegram send, layout), `__main__.py`. README in `mygg/README.md`.

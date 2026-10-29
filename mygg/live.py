@@ -80,6 +80,7 @@ def scan(symbols, interval=20, log="mygg_flips.csv", rules=DEFAULT_RULES, once=F
     published within `cooldown` candles, or the coin already has a published signal in this candle (the
     original's batches never repeat a coin). The cooldown is a guess to tune against the original."""
     cache = {}
+    heartbeat = os.path.join(os.path.dirname(os.path.abspath(log)), "mygg_heartbeat")
     seen, last_pub, in_candle = _restore(log)
     if not os.path.exists(log):
         with open(log, "w", newline="") as f:
@@ -117,6 +118,11 @@ def scan(symbols, interval=20, log="mygg_flips.csv", rules=DEFAULT_RULES, once=F
                                                 sig["side"], prices[key], sig["entries"][0], sig["stop"], int(publish)])
         except Exception as ex:                                 # network hiccup: keep going
             print("scan error:", type(ex).__name__, flush=True)
+        try:                                                    # proof of life for tools/status.sh
+            with open(heartbeat, "w") as f:
+                f.write(str(int(time.time())))
+        except OSError:
+            pass
         if once:
             return
         time.sleep(interval)

@@ -70,6 +70,16 @@ class ScanTests(unittest.TestCase):
         self.assertEqual(last[("BTCUSDT", "EMA Cross", 1)], start)
 
 
+    def test_scan_writes_a_heartbeat(self):
+        import os, tempfile
+        from unittest import mock
+        from mygg import live
+        d = tempfile.mkdtemp()
+        with mock.patch.object(live, "_get", lambda path, **kw: [] if path == "ticker/price" else []):
+            live.scan(["BTC"], once=True, log=os.path.join(d, "f.csv"), rules=[])
+        with open(os.path.join(d, "mygg_heartbeat")) as f:
+            self.assertGreater(int(f.read()), 1_700_000_000)
+
     def test_one_published_signal_per_coin_per_candle(self):
         import os, tempfile, time
         from unittest import mock
