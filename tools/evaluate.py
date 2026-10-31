@@ -26,7 +26,8 @@ def load(path):
         return [(int(r["t"]), float(r["o"]), float(r["h"]), float(r["l"]), float(r["c"])) for r in csv.DictReader(f)]
 
 
-def simulate(c, i0, side, price, lev, fee, entry_w=ENTRY_W, tp_w=TP_W, trail="breakeven"):
+def simulate(c, i0, side, price, lev, fee, entry_w=ENTRY_W, tp_w=TP_W, trail="breakeven", forced=None):
+    """forced = (time_ms, price): close whatever is left at that price when that time arrives (reversal)."""
     sig = template.build(side, price, ladder=True)
     entries, tps, stop = sig["entries"], sig["tps"], sig["stop"]
     qty = entry_w[0]
@@ -43,6 +44,10 @@ def simulate(c, i0, side, price, lev, fee, entry_w=ENTRY_W, tp_w=TP_W, trail="br
         qty -= q
 
     for k in range(i0 + 1, len(c)):
+        if forced and c[k][0] + 900000 > forced[0]:
+            close(qty, forced[1])
+            reason, end = "reversed", k
+            break
         for j in (1, 2, 3):
             if not filled[j] and adv(k, entries[j]):
                 filled[j] = True
