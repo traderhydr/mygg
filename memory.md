@@ -156,8 +156,10 @@ for the closed/stopped signals export as well.
 ## Limited period (owner decision 2026-10-31)
 Owner chose a 4-hour cooldown per coin and direction, any rule, no hourly cap, opposite directions still allowed:
 `./tools/run_scanner.sh --cooldown 16 --cooldown-scope dir`. Reason: the Cornix export showed 89% of open trades
-stacked on the same coin and direction (ETH long x11, ETH short x10, BTC long x8). Start time = the `date -u` the owner
-reports after restarting (not yet recorded). Everything logged before it is the unrestricted period. Positions already
+stacked on the same coin and direction (ETH long x11, ETH short x10, BTC long x8). Start time: 2026-10-31 14:51:52 UTC (the owner's restart). At the same restart:
+PEPE/SHIB/FLOKI/BONK (1000x contracts) and 10 extra coins (NEAR FIL TIA HBAR LDO ALGO ETC BCH TON TAO via `--add`) were added, so the
+limited period also has a 52-coin watchlist. Command: `./tools/run_scanner.sh --cooldown 16 --cooldown-scope dir --add NEAR FIL TIA HBAR LDO ALGO ETC BCH TON TAO`.
+At that moment 421 flips were logged and 222 published for 31 Oct UTC so far. Everything logged before it is the unrestricted period. Positions already
 open are not closed by this.
 
 ## Cornix full export seen 2026-10-31 (1072 signals, 28 Oct 17:32 to 31 Oct 09:15 UTC, chat "Botbac")
