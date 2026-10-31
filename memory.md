@@ -130,6 +130,13 @@ Also check Cornix's concurrent-trade limits: hundreds of 15-25x positions on one
 raw MACD/EMA rules at about 13 published signals an hour, not the original's filtered feed. Read the final report
 with that in mind; the original's own volume is still unknown.
 
+## Repeats and stacking (measured 2026-10-31, `tools/repeats.py`)
+1030 published signals in 28-31 Oct: 56% repeat the same coin and direction within 4 h, 65% opened while an earlier
+position on that coin and direction was still open (deepest: ETH long x10, ETH short x10, BTC short x10). Repeats do not
+perform worse than first signals (TP1 81% both, mean return about 4% both). Peak 208 positions open at once, tying up
+about 750% of the balance at 5% each, so Cornix cannot take every signal: its paper result depends on its amount per
+signal and concurrent-trade limit. Owner to report those settings; the month-end read must account for them.
+
 ## Known delivery gaps
 - 2026-10-31: two Telegram sends failed with URLError (brief network blips) on the chat whose id ends 1908:
   TRXUSDT and IMXUSDT signals (lines 1921 and 2291 of `scan.out`; no times recorded). They are `published=1` in the log
