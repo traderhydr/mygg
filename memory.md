@@ -130,6 +130,12 @@ Also check Cornix's concurrent-trade limits: hundreds of 15-25x positions on one
 raw MACD/EMA rules at about 13 published signals an hour, not the original's filtered feed. Read the final report
 with that in mind; the original's own volume is still unknown.
 
+## Known delivery gaps
+- 2026-10-31: two Telegram sends failed with URLError (brief network blips) on the chat whose id ends 1908:
+  TRXUSDT and IMXUSDT signals (lines 1921 and 2291 of `scan.out`; no times recorded). They are `published=1` in the log
+  but did not reach that chat. Check which chat Cornix follows before counting them in the month-end comparison.
+  Scan errors (URLError) skip one scan pass and recover on their own.
+
 ## Resume checklist
 1. `git pull`, run the tests, read this file.
 2. Check the scanner (`pgrep -f "mygg scan"`, `tail scan.out`, `tail mygg_flips.csv`).
