@@ -78,11 +78,15 @@ def main():
     ap.add_argument("--amount", type=float, default=5.0, help="percent of balance as margin per full signal")
     ap.add_argument("--fee", type=float, default=0.0005)
     ap.add_argument("--all", action="store_true", help="include unpublished flips")
+    ap.add_argument("--unpublished", action="store_true", help="only the flips that were suppressed (published = 0)")
     a = ap.parse_args()
 
     cache, rows, skipped = {}, [], 0
     for r in csv.DictReader(open(a.flips)):
-        if not a.all and r.get("published", "1") == "0":
+        is_pub = r.get("published", "1") != "0"
+        if a.unpublished and is_pub:
+            continue
+        if not a.all and not a.unpublished and not is_pub:
             continue
         sym = r["symbol"]
         if sym not in cache:
