@@ -137,6 +137,15 @@ perform worse than first signals (TP1 81% both, mean return about 4% both). Peak
 about 750% of the balance at 5% each, so Cornix cannot take every signal: its paper result depends on its amount per
 signal and concurrent-trade limit. Owner to report those settings; the month-end read must account for them.
 
+## Owner confirmations
+- 2026-10-31: the owner confirmed the Cornix set-up is paper trading "for now". Cornix settings seen in the admin panel
+  for a scanner signal: entries 65/15/10/10, targets 60/20/10/10, trailing "Moving Target" triggered at target 1,
+  amount 5.0%, 10 exchange accounts listed. About 185-225 trades were open on 31 Oct. Use
+  `tools/evaluate.py --entry-weights 65,15,10,10 --tp-weights 60,20,10,10 --trail moving --amount 5`.
+- Conditions to agree before any real money (owner to tell the assistant first): full month incl. all stop-outs, a
+  drawdown the owner can accept (the model shows 90%+ at 200 stacked positions), a beat over the same-month random
+  baseline, a position-size and concurrent-trade cap, and a small separate live test.
+
 ## Known delivery gaps
 - 2026-10-31: two Telegram sends failed with URLError (brief network blips) on the chat whose id ends 1908:
   TRXUSDT and IMXUSDT signals (lines 1921 and 2291 of `scan.out`; no times recorded). They are `published=1` in the log
