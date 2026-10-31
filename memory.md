@@ -153,6 +153,13 @@ underwater (mean -5%); the worst are 25x longs at -45% to -83% after 7-22 h (INJ
 their stops. Shorts are doing better than longs in this window. Tool: `tools/cornix_report.py <csv ...>`; ask the owner
 for the closed/stopped signals export as well.
 
+## Limited period (owner decision 2026-10-31)
+Owner chose a 4-hour cooldown per coin and direction, any rule, no hourly cap, opposite directions still allowed:
+`./tools/run_scanner.sh --cooldown 16 --cooldown-scope dir`. Reason: the Cornix export showed 89% of open trades
+stacked on the same coin and direction (ETH long x11, ETH short x10, BTC long x8). Start time = the `date -u` the owner
+reports after restarting (not yet recorded). Everything logged before it is the unrestricted period. Positions already
+open are not closed by this.
+
 ## Owner confirmations
 - 2026-10-31: the owner confirmed the Cornix set-up is paper trading "for now". Cornix settings seen in the admin panel
   for a scanner signal: entries 65/15/10/10, targets 60/20/10/10, trailing "Moving Target" triggered at target 1,
