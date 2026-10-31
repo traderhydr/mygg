@@ -145,6 +145,14 @@ signals a day, peak 167 open, 662% margin at 5% each, drawdown 92%. "4h per coin
 peak 29 open, 116% margin, drawdown 25%. Max 6 an hour: 123 a day, peak 52, 204%, drawdown 28%. Totals in impact are noise.
 When the owner applies a limit, record the date here: before that date = unrestricted period, after = limited period.
 
+## Cornix export seen 2026-10-31 (chat "Botbac", 232 signals, 29 Oct 23:30 to 31 Oct 09:10 UTC)
+Active signals only: 180 open, 46 with some targets, 6 all targets; no stopped or closed statuses, so stop-outs and
+breakeven exits are missing and totals are biased upward. Leverage 25x (MACD) 155, 15x (EMA) 77. Cornix allows several
+trades on one pair (ETH long x11). 8-10 exchange accounts per signal. Active trades younger than 6 h are mostly
+underwater (mean -5%); the worst are 25x longs at -45% to -83% after 7-22 h (INJ, TRX x3, FET, ONDO, DOT, LTC), close to
+their stops. Shorts are doing better than longs in this window. Tool: `tools/cornix_report.py <csv ...>`; ask the owner
+for the closed/stopped signals export as well.
+
 ## Owner confirmations
 - 2026-10-31: the owner confirmed the Cornix set-up is paper trading "for now". Cornix settings seen in the admin panel
   for a scanner signal: entries 65/15/10/10, targets 60/20/10/10, trailing "Moving Target" triggered at target 1,
