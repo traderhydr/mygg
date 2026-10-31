@@ -3,7 +3,7 @@
 
 For each 15m candle in the window it prints open/high/low/close and the rule's value (in basis
 points of price) at the previous close, at the candle's low, at its high and at its close, plus a
-marker when the sign differs from the previous close. Rules: macd, or emaF/S (e.g. ema9/21).
+marker when the sign differs from the previous close. Rules: macd, emaF/S (e.g. ema9/21), or bbN/D (e.g. bb20/2: price minus the upper band of the previous N closes).
 
   python3 trace.py SUIUSDT "2026-10-28 07:00" "2026-10-28 08:30" --rule ema9/21
 Run from this folder after template_backtest.py fetch. Standard library only.
@@ -25,6 +25,12 @@ c = load(a.symbol)
 def value(closes):
     if a.rule == "macd":
         return macd(closes)[2][-1]
+    if a.rule.startswith("bb"):
+        import statistics as st
+        n, d = a.rule[2:].split("/")
+        n, d = int(n), float(d)
+        w = closes[-n - 1:-1]
+        return closes[-1] - (st.mean(w) + d * st.pstdev(w))
     f, s = (int(x) for x in a.rule[3:].split("/"))
     return ema(closes, f)[-1] - ema(closes, s)[-1]
 
