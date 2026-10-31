@@ -37,6 +37,9 @@ def main():
     s.add_argument("--rules", nargs="*", choices=sorted(RULES), default=["macd", "ema"],
                    help="bb is an unconfirmed placeholder, so it is off by default")
     s.add_argument("--log", default="mygg_flips.csv")
+    s.add_argument("--cooldown-scope", choices=["rule", "dir", "coin"], default="rule",
+                   help="what the cooldown applies to: coin+rule+direction (default), coin+direction, or the whole coin")
+    s.add_argument("--max-per-hour", type=int, default=0, help="cap on published signals per UTC hour (0 = no cap)")
     s.add_argument("--cooldown", type=int, default=4,
                    help="candles before the same coin, rule and direction is published again (all flips are still logged)")
 
@@ -61,7 +64,8 @@ def main():
         print(f"{len(rows)} rule flips written to {a.out}")
     else:
         live.scan([x[:-4] if x.endswith("USDT") else x for x in a.symbols], a.interval, log=a.log,
-                  rules=[RULES[r]() for r in a.rules], once=a.once, cooldown=a.cooldown)
+                  rules=[RULES[r]() for r in a.rules], once=a.once, cooldown=a.cooldown,
+                  cooldown_scope=a.cooldown_scope, max_per_hour=a.max_per_hour)
 
 
 if __name__ == "__main__":

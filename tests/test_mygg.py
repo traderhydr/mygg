@@ -66,7 +66,7 @@ class ScanTests(unittest.TestCase):
             self.assertEqual(tg.call_count, 1)
         with open(log) as f:
             self.assertEqual(len(f.read().strip().splitlines()), 2)            # header + one flip
-        seen, last, in_candle = live._restore(log)
+        seen, last, in_candle, hours = live._restore(log)
         self.assertEqual(last[("BTCUSDT", "EMA Cross", 1)], start)
 
 
@@ -79,6 +79,31 @@ class ScanTests(unittest.TestCase):
             live.scan(["BTC"], once=True, log=os.path.join(d, "f.csv"), rules=[])
         with open(os.path.join(d, "mygg_heartbeat")) as f:
             self.assertGreater(int(f.read()), 1_700_000_000)
+
+    def test_hourly_cap_and_restart(self):
+        import os, tempfile, time
+        from unittest import mock
+        from mygg import live
+        from mygg.rules import EMACross
+        now = int(time.time() * 1000)
+        start = now - now % live.BAR_MS
+
+        def fake_get(path, **kw):
+            if path == "ticker/price":
+                return [{"symbol": "BTCUSDT", "price": "110.0"}, {"symbol": "ETHUSDT", "price": "110.0"}]
+            p, k = 100.0, []
+            for j in range(300, 0, -1):
+                p *= 0.999
+                k.append([start - j * live.BAR_MS, 0, 0, 0, str(p), 0])
+            k.append([start, 0, 0, 0, str(p), 0])
+            return k
+
+        log = os.path.join(tempfile.mkdtemp(), "h.csv")
+        with mock.patch.object(live, "_get", fake_get), mock.patch.object(live, "send_telegram") as tg, \
+                mock.patch("builtins.print"):
+            live.scan(["BTC", "ETH"], once=True, log=log, rules=[EMACross()], max_per_hour=1, cooldown_scope="dir")
+            live.scan(["BTC", "ETH"], once=True, log=log, rules=[EMACross()], max_per_hour=1, cooldown_scope="dir")
+        self.assertEqual(tg.call_count, 1)                         # two coins flipped, only one under the cap
 
     def test_one_published_signal_per_coin_per_candle(self):
         import os, tempfile, time

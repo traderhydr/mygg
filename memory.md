@@ -137,6 +137,14 @@ perform worse than first signals (TP1 81% both, mean return about 4% both). Peak
 about 750% of the balance at 5% each, so Cornix cannot take every signal: its paper result depends on its amount per
 signal and concurrent-trade limit. Owner to report those settings; the month-end read must account for them.
 
+## Volume limits (added 2026-10-31, optional flags, defaults unchanged)
+`python3 -m mygg scan` now accepts `--cooldown N` (candles), `--cooldown-scope rule|dir|coin` and `--max-per-hour N`;
+`tools/run_scanner.sh` passes extra options through. `tools/whatif.py` compared limits on 2.6 days of flips (1433 logged):
+per-signal quality barely changes (TP1 76-85%, stops 6-8.5%), so limits reduce exposure, not edge. Current set-up: 394
+signals a day, peak 167 open, 662% margin at 5% each, drawdown 92%. "4h per coin+direction, max 3 an hour": 66 a day,
+peak 29 open, 116% margin, drawdown 25%. Max 6 an hour: 123 a day, peak 52, 204%, drawdown 28%. Totals in impact are noise.
+When the owner applies a limit, record the date here: before that date = unrestricted period, after = limited period.
+
 ## Owner confirmations
 - 2026-10-31: the owner confirmed the Cornix set-up is paper trading "for now". Cornix settings seen in the admin panel
   for a scanner signal: entries 65/15/10/10, targets 60/20/10/10, trailing "Moving Target" triggered at target 1,

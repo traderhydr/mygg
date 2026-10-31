@@ -63,11 +63,15 @@ def format_signal(sig):
             f"🛑 Stop Loss: {f(sig['stop'])}")
 
 
-def _restore(log):
-    """Rebuild what was already logged so a restart does not repeat signals."""
-    seen, last_pub, in_candle = set(), {}, set()
+def _cooldown_key(sym, rule, side, scope):
+    return {"rule": (sym, rule, side), "dir": (sym, side), "coin": (sym,)}[scope]
+
+
+def _restore(log, scope="rule"):
+    """Rebuild what was already logged so a restart does not repeat signals or exceed the hourly cap."""
+    seen, last_pub, in_candle, hours = set(), {}, set(), {}
     if not os.path.exists(log):
-        return seen, last_pub, in_candle
+        return seen, last_pub, in_candle, hours
     with open(log) as f:
         for r in csv.DictReader(f):
             try:
@@ -77,19 +81,23 @@ def _restore(log):
             start, side = ms - ms % BAR_MS, 1 if r["direction"] == "long" else -1
             seen.add((r["symbol"], r["rule"], start, side))
             if r.get("published", "1") != "0":
-                k = (r["symbol"], r["rule"], side)
+                k = _cooldown_key(r["symbol"], r["rule"], side, scope)
                 last_pub[k] = max(last_pub.get(k, 0), start)
                 in_candle.add((r["symbol"], start))
-    return seen, last_pub, in_candle
+                hours[ms // 3600000] = hours.get(ms // 3600000, 0) + 1
+    return seen, last_pub, in_candle, hours
 
 
-def scan(symbols, interval=20, log="mygg_flips.csv", rules=DEFAULT_RULES, once=False, cooldown=4):
+def scan(symbols, interval=20, log="mygg_flips.csv", rules=DEFAULT_RULES, once=False, cooldown=4,
+         cooldown_scope="rule", max_per_hour=0):
     """Log every raw flip; publish (print + Telegram) unless the same coin, rule and direction was
     published within `cooldown` candles, or the coin already has a published signal in this candle (the
-    original's batches never repeat a coin). The cooldown is a guess to tune against the original."""
+    original's batches never repeat a coin). The cooldown is a guess to tune against the original.
+    cooldown_scope: "rule" (coin+rule+direction, the default), "dir" (coin+direction, any rule) or "coin".
+    max_per_hour: cap on published signals per UTC hour (0 = no cap)."""
     cache = {}
     heartbeat = os.path.join(os.path.dirname(os.path.abspath(log)), "mygg_heartbeat")
-    seen, last_pub, in_candle = _restore(log)
+    seen, last_pub, in_candle, hours = _restore(log, cooldown_scope)
     if not os.path.exists(log):
         with open(log, "w", newline="") as f:
             csv.writer(f).writerow(["time_utc", "symbol", "rule", "direction", "price", "entry1", "stop", "published"])
@@ -111,13 +119,17 @@ def scan(symbols, interval=20, log="mygg_flips.csv", rules=DEFAULT_RULES, once=F
                     if not side or (key, rule.name, start, side) in seen:
                         continue
                     seen.add((key, rule.name, start, side))
-                    publish = (start - last_pub.get((key, rule.name, side), -10 ** 15) >= cooldown * BAR_MS
-                               and (key, start) not in in_candle)         # one published signal per coin per candle
+                    ck = _cooldown_key(key, rule.name, side, cooldown_scope)
+                    hour = now // 3600000
+                    publish = (start - last_pub.get(ck, -10 ** 15) >= cooldown * BAR_MS
+                               and (key, start) not in in_candle           # one published signal per coin per candle
+                               and (not max_per_hour or hours.get(hour, 0) < max_per_hour))
                     sig = template.build(side, prices[key], ladder=True)
                     sig.update(symbol=key, rule=rule.name, leverage=rule.leverage)
                     if publish:
-                        last_pub[(key, rule.name, side)] = start
+                        last_pub[ck] = start
                         in_candle.add((key, start))
+                        hours[hour] = hours.get(hour, 0) + 1
                         text = format_signal(sig)
                         print(text, "\n", flush=True)
                         send_telegram(text)
