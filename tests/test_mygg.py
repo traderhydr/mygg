@@ -133,6 +133,41 @@ class ScanTests(unittest.TestCase):
         self.assertEqual(flags, ["1", "0"])
 
 
+class ScaledCoinTests(unittest.TestCase):
+    def test_1000x_contracts_are_scaled_in_signals_and_log(self):
+        import csv, os, tempfile, time
+        from unittest import mock
+        from mygg import live
+        from mygg.rules import EMACross
+        self.assertEqual(live.market("PEPE"), ("1000PEPEUSDT", 1000))
+        self.assertEqual(live.market("BTC"), ("BTCUSDT", 1))
+        now = int(time.time() * 1000)
+        start = now - now % live.BAR_MS
+
+        def fake_get(path, **kw):
+            if path == "ticker/price":
+                return [{"symbol": "1000PEPEUSDT", "price": "4.4"}]
+            assert kw["symbol"] == "1000PEPEUSDT"
+            p, k = 4.0, []
+            for j in range(300, 0, -1):
+                p *= 0.999
+                k.append([start - j * live.BAR_MS, 0, 0, 0, str(p), 0])
+            k.append([start, 0, 0, 0, str(p), 0])
+            return k
+
+        log = os.path.join(tempfile.mkdtemp(), "s.csv")
+        with mock.patch.object(live, "_get", fake_get), mock.patch.object(live, "send_telegram") as tg, \
+                mock.patch("builtins.print"):
+            live.scan(["PEPE"], once=True, log=log, rules=[EMACross()])
+        text = tg.call_args[0][0]
+        self.assertIn("Pair: PEPEUSDT", text)
+        self.assertIn("Stop Loss: 0.004180", text)        # 4.4 on the 1000x contract is 0.0044 plain; stop 5% below
+        with open(log) as f:
+            row = list(csv.DictReader(f))[0]
+        self.assertEqual(row["symbol"], "PEPEUSDT")
+        self.assertAlmostEqual(float(row["price"]), 4.4e-3, places=6)
+
+
 class FormatTests(unittest.TestCase):
     def test_arb_layout_matches_the_original_numbers(self):
         from mygg import live

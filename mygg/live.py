@@ -13,7 +13,16 @@ from .rules import DEFAULT_RULES
 API = "https://fapi.binance.com/fapi/v1"
 BAR_MS = 15 * 60 * 1000
 DEFAULT_WATCHLIST = ("BTC ETH SOL BNB XRP DOGE ADA AVAX LINK DOT UNI ATOM LTC AAVE ARB OP APT SUI SEI INJ "
-                     "RENDER FET IMX ONDO ENA WLD STRK PYTH JUP ORDI ICP GRT XLM TRX POL KAS WIF").split()
+                     "RENDER FET IMX ONDO ENA WLD STRK PYTH JUP ORDI ICP GRT XLM TRX POL KAS WIF PEPE SHIB FLOKI BONK").split()
+
+# Binance quotes these as 1000x contracts (1000PEPEUSDT ~ 0.004). The signals show the plain price (~4e-06).
+SCALED = {"PEPE", "SHIB", "FLOKI", "BONK"}
+SCALE = 1000
+
+
+def market(sym):
+    """(Binance symbol, price divisor) for a coin like PEPE or BTC."""
+    return (f"{SCALE}{sym}USDT", SCALE) if sym in SCALED else (f"{sym}USDT", 1)
 
 
 def _get(path, **params):
@@ -106,16 +115,18 @@ def scan(symbols, interval=20, log="mygg_flips.csv", rules=DEFAULT_RULES, once=F
             now = int(time.time() * 1000)
             prices = {p["symbol"]: float(p["price"]) for p in _get("ticker/price")}
             for sym in symbols:
-                key = sym + "USDT"
-                if key not in prices:
+                api, scale = market(sym)
+                key = sym + "USDT"                              # the name shown in signals and the log
+                if api not in prices:
                     continue
                 start = now - now % BAR_MS
                 if cache.get(key, (None,))[0] != start:       # new candle: refresh the closed history
-                    k = _get("klines", symbol=key, interval="15m", limit=320)
+                    k = _get("klines", symbol=api, interval="15m", limit=320)
                     cache[key] = (start, [float(x[4]) for x in k if x[0] < start])
                 closed = cache[key][1]
+                price = prices[api] / scale
                 for rule in rules:
-                    side = rule.flip(closed, prices[key])
+                    side = rule.flip(closed, prices[api])       # indicator signs do not depend on the scale
                     if not side or (key, rule.name, start, side) in seen:
                         continue
                     seen.add((key, rule.name, start, side))
@@ -124,7 +135,7 @@ def scan(symbols, interval=20, log="mygg_flips.csv", rules=DEFAULT_RULES, once=F
                     publish = (start - last_pub.get(ck, -10 ** 15) >= cooldown * BAR_MS
                                and (key, start) not in in_candle           # one published signal per coin per candle
                                and (not max_per_hour or hours.get(hour, 0) < max_per_hour))
-                    sig = template.build(side, prices[key], ladder=True)
+                    sig = template.build(side, price, ladder=True)
                     sig.update(symbol=key, rule=rule.name, leverage=rule.leverage)
                     if publish:
                         last_pub[ck] = start
@@ -135,7 +146,7 @@ def scan(symbols, interval=20, log="mygg_flips.csv", rules=DEFAULT_RULES, once=F
                         send_telegram(text)
                     with open(log, "a", newline="") as f:
                         csv.writer(f).writerow([time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()), key, rule.name,
-                                                sig["side"], prices[key], sig["entries"][0], sig["stop"], int(publish)])
+                                                sig["side"], price, sig["entries"][0], sig["stop"], int(publish)])
         except Exception as ex:                                 # network hiccup: keep going
             print("scan error:", type(ex).__name__, flush=True)
         try:                                                    # proof of life for tools/status.sh

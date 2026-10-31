@@ -178,6 +178,12 @@ on this. Coins with the most cancel-losses/stops: POL 10, TRX 8, KAS 6, LTC 6, O
 splitting first half vs second half. The scanner uses a fixed hand-picked watchlist (`DEFAULT_WATCHLIST` in
 `mygg/live.py`), checked every 20 s; the original also looks like a fixed list scanned in a fixed order.
 
+## Watchlist change (owner request, 2026-10-31)
+PEPE, SHIB, FLOKI and BONK added to `DEFAULT_WATCHLIST`. Binance lists them as 1000x contracts (1000PEPEUSDT); the scanner
+queries those names but shows and logs the plain pair (PEPEUSDT) with prices divided by 1000, like the original signals.
+`template_backtest.py fetch --symbols PEPEUSDT ...` does the same when saving candles, so every tool reads `data/PEPEUSDT.csv`
+in plain units. Record the restart time here when the owner reports it.
+
 ## Owner confirmations
 - 2026-10-31: the owner confirmed the Cornix set-up is paper trading "for now". Cornix settings seen in the admin panel
   for a scanner signal: entries 65/15/10/10, targets 60/20/10/10, trailing "Moving Target" triggered at target 1,

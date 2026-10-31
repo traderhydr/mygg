@@ -43,16 +43,20 @@ def bybit(sym, s, e):
     return [[int(k[0])] + k[1:6] for k in reversed(d["result"]["list"])]
 
 
+SCALED = {"PEPEUSDT", "SHIBUSDT", "FLOKIUSDT", "BONKUSDT"}   # Binance lists these as 1000x contracts
+
+
 def fetch(symbols, days):
     os.makedirs(DATA, exist_ok=True)
     end = int(dt.datetime.now(dt.timezone.utc).timestamp() * 1000)
     for sym in symbols:
+        api = "1000" + sym if sym in SCALED else sym          # the exchange name; the file keeps the plain name
         rows, cur = [], end - days * 86400000
         for fn in (binance, bybit):
             try:
                 rows, cur = [], end - days * 86400000
                 while cur < end:
-                    chunk = fn(sym, cur, end)
+                    chunk = fn(api, cur, end)
                     if not chunk:
                         break
                     rows += chunk
@@ -61,11 +65,13 @@ def fetch(symbols, days):
             except Exception as ex:
                 print(sym, fn.__name__, "failed:", ex)
                 rows = []
+        if sym in SCALED:                                      # 1000x contract -> plain price, like the signals
+            rows = [[r[0]] + [repr(float(x) / 1000) for x in r[1:5]] + [r[5]] for r in rows]
         with open(f"{DATA}/{sym}.csv", "w", newline="") as f:
             w = csv.writer(f)
             w.writerow(["t", "o", "h", "l", "c", "v"])
             w.writerows(rows)
-        print(sym, len(rows), "candles")
+        print(sym, len(rows), "candles" + (f" (from {api}, prices divided by 1000)" if sym in SCALED else ""))
 
 
 def load(sym):
