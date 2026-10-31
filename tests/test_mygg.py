@@ -112,8 +112,11 @@ class FormatTests(unittest.TestCase):
     def test_arb_layout_matches_the_original_numbers(self):
         from mygg import live
         sig = template.build(1, 0.16682, ladder=True)
-        sig.update(symbol="ARBUSDT", leverage=25)
+        sig.update(symbol="ARBUSDT", leverage=25, rule="MACD Cross")
         text = live.format_signal(sig)
+        self.assertIn("🧠 Strategy: MACD Cross", text)
+        self.assertEqual(live.strategy_label("BB", "long"), "BB Breakout")
+        self.assertEqual(live.strategy_label("BB", "short"), "BB Breakdown")
         self.assertTrue(text.startswith("⚡ SABBOT REAL ⚡"))
         self.assertIn("🪙 Pair: ARBUSDT", text)
         self.assertNotIn("Exchange", text)

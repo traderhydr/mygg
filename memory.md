@@ -33,7 +33,7 @@ Read this first when resuming.
   owner's private channel, where Cornix paper-trades it) only if: not already logged this candle (restart-safe), the
   coin has no other published signal this candle (the original's batches never repeat a coin; a guess), and the same
   coin/rule/direction was not published in the last 4 candles (a guess).
-- Layout: header "⚡ SABBOT REAL ⚡", Pair, Direction, `Leverage: Cross NX`, four Entries, four Take Profits, Stop
+- Layout: header "⚡ SABBOT REAL ⚡", a `Strategy:` line (MACD Cross / EMA Cross; added 2026-10-31, cosmetic), Pair, Direction, `Leverage: Cross NX`, four Entries, four Take Profits, Stop
   Loss. No exchange line, no disclaimer. Levels from `mygg/template.py`.
 - Old log `mygg_signals.csv` (before the cooldown and layout changes) is kept for reference.
 

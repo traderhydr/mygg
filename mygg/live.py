@@ -43,10 +43,18 @@ def send_telegram(text):
 HEADER = "⚡ SABBOT REAL ⚡"
 
 
+def strategy_label(rule, side):
+    """Name shown in the message, as the original labels them."""
+    if rule == "BB":
+        return "BB Breakout" if side == "long" else "BB Breakdown"
+    return rule
+
+
 def format_signal(sig):
     """Cornix-readable layout (pair, direction, leverage, entries, targets, stop)."""
     f = template.fmt
     return (f"{HEADER}\n\n"
+            f"🧠 Strategy: {strategy_label(sig['rule'], sig['side'])}\n"
             f"🪙 Pair: {sig['symbol']}\n"
             f"🧭 Direction: {sig['side'].upper()}\n"
             f"⚙️ Leverage: Cross {sig['leverage']}X\n"
