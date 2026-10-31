@@ -26,10 +26,10 @@ def load(path):
         return [(int(r["t"]), float(r["o"]), float(r["h"]), float(r["l"]), float(r["c"])) for r in csv.DictReader(f)]
 
 
-def simulate(c, i0, side, price, lev, fee):
+def simulate(c, i0, side, price, lev, fee, entry_w=ENTRY_W, tp_w=TP_W, trail="breakeven"):
     sig = template.build(side, price, ladder=True)
     entries, tps, stop = sig["entries"], sig["tps"], sig["stop"]
-    qty = ENTRY_W[0]
+    qty = entry_w[0]
     avg, max_qty, entered, exited, realized = entries[0], qty, qty, 0.0, 0.0
     filled, hit, be = [True, False, False, False], [False] * 4, False
     reason, end = None, len(c) - 1
@@ -46,9 +46,9 @@ def simulate(c, i0, side, price, lev, fee):
         for j in (1, 2, 3):
             if not filled[j] and adv(k, entries[j]):
                 filled[j] = True
-                avg = (avg * qty + entries[j] * ENTRY_W[j]) / (qty + ENTRY_W[j])
-                qty += ENTRY_W[j]
-                entered += ENTRY_W[j]
+                avg = (avg * qty + entries[j] * entry_w[j]) / (qty + entry_w[j])
+                qty += entry_w[j]
+                entered += entry_w[j]
                 max_qty = max(max_qty, qty)
         if adv(k, stop):
             close(qty, stop)
@@ -56,11 +56,13 @@ def simulate(c, i0, side, price, lev, fee):
             break
         for j in range(4):
             if not hit[j] and fav(k, tps[j]):
-                left = sum(TP_W[m] for m in range(4) if not hit[m])
-                close(qty * TP_W[j] / left, tps[j])
+                left = sum(tp_w[m] for m in range(4) if not hit[m])
+                close(qty * tp_w[j] / left, tps[j])
                 hit[j] = True
                 if j == 0:
                     be, stop = True, avg
+                elif trail == "moving":
+                    stop = tps[j - 1]            # Cornix 'Moving Target': stop follows the previous target
         if qty <= 1e-12:
             reason, end = "tp_all", k
             break
@@ -77,10 +79,16 @@ def main():
     ap.add_argument("--data", default="data")
     ap.add_argument("--amount", type=float, default=5.0, help="percent of balance as margin per full signal")
     ap.add_argument("--fee", type=float, default=0.0005)
+    ap.add_argument("--entry-weights", default="50,25,15,10", help="share of the size per entry, e.g. 65,15,10,10")
+    ap.add_argument("--tp-weights", default="65,15,10,10", help="share of the position closed at each target")
+    ap.add_argument("--trail", choices=["breakeven", "moving"], default="breakeven",
+                    help="after target 1 the stop goes to the average entry; 'moving' also follows each later target")
     ap.add_argument("--all", action="store_true", help="include unpublished flips")
     ap.add_argument("--unpublished", action="store_true", help="only the flips that were suppressed (published = 0)")
     a = ap.parse_args()
 
+    ew = tuple(float(x) / 100 for x in a.entry_weights.split(","))
+    tw = tuple(float(x) / 100 for x in a.tp_weights.split(","))
     cache, rows, skipped = {}, [], 0
     for r in csv.DictReader(open(a.flips)):
         is_pub = r.get("published", "1") != "0"
@@ -104,7 +112,7 @@ def main():
             skipped += 1
             continue
         side = 1 if r["direction"] == "long" else -1
-        res = simulate(c, i0, side, float(r["price"]), LEV.get(r["rule"], 20), a.fee)
+        res = simulate(c, i0, side, float(r["price"]), LEV.get(r["rule"], 20), a.fee, ew, tw, a.trail)
         res.update(sym=sym, rule=r["rule"], side=r["direction"], day=r["time_utc"][:10], t=t,
                    impact=a.amount * res["qty"] * res["roe"])
         rows.append(res)
@@ -123,7 +131,8 @@ def main():
                   f"{pct(lambda x: x['reason'] == 'breakeven'):5.1f} {pct(lambda x: x['reason'] == 'open'):6.1f} "
                   f"{100 * sum(x['roe'] for x in v) / n:8.1f}% {sum(x['impact'] for x in v):9.1f}%")
 
-    print(f"{len(rows)} signals simulated ({skipped} skipped: no candles or too recent), amount {a.amount}% per signal, fee {a.fee:.2%}/side")
+    print(f"{len(rows)} signals simulated ({skipped} skipped: no candles or too recent), amount {a.amount}% per signal, fee {a.fee:.2%}/side, "
+          f"entries {a.entry_weights}, targets {a.tp_weights}, trail {a.trail}")
     if not rows:
         return
     block("By rule", "rule")
