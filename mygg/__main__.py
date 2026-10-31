@@ -31,7 +31,8 @@ def main():
     r.add_argument("--since", help='UTC, e.g. "2026-10-28 00:00"')
 
     s = sub.add_parser("scan", help="live paper scanner (needs internet access to Binance)")
-    s.add_argument("--symbols", nargs="*", default=live.DEFAULT_WATCHLIST)
+    s.add_argument("--symbols", nargs="*", default=live.DEFAULT_WATCHLIST, help="replace the whole watchlist")
+    s.add_argument("--add", nargs="*", default=[], help="extra coins on top of the watchlist, e.g. --add NEAR FIL TIA")
     s.add_argument("--interval", type=int, default=20)
     s.add_argument("--once", action="store_true")
     s.add_argument("--rules", nargs="*", choices=sorted(RULES), default=["macd", "ema"],
@@ -63,7 +64,12 @@ def main():
                             x["symbol"], x["rule"], "long" if x["side"] > 0 else "short", x["price"]])
         print(f"{len(rows)} rule flips written to {a.out}")
     else:
-        live.scan([x[:-4] if x.endswith("USDT") else x for x in a.symbols], a.interval, log=a.log,
+        coins = []
+        for x in list(a.symbols) + list(a.add):
+            x = (x[:-4] if x.upper().endswith("USDT") else x).upper()
+            if x not in coins:
+                coins.append(x)
+        live.scan(coins, a.interval, log=a.log,
                   rules=[RULES[r]() for r in a.rules], once=a.once, cooldown=a.cooldown,
                   cooldown_scope=a.cooldown_scope, max_per_hour=a.max_per_hour)
 

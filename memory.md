@@ -184,6 +184,12 @@ queries those names but shows and logs the plain pair (PEPEUSDT) with prices div
 `template_backtest.py fetch --symbols PEPEUSDT ...` does the same when saving candles, so every tool reads `data/PEPEUSDT.csv`
 in plain units. Record the restart time here when the owner reports it.
 
+## Extra coins without code edits (2026-10-31)
+`python3 -m mygg scan --add NEAR FIL TIA ...` adds coins to the default watchlist (`--symbols` replaces it). The scanner prints
+once at start which coins it watches and which are not on Binance futures. Every coin seen in the original's signals was
+already in the list; extra coins are the owner's choice and add volume (about 5 signals a day per coin with the 4-hour
+cooldown). Fetch candles for new coins with `template_backtest.py fetch` before evaluating them.
+
 ## Owner confirmations
 - 2026-10-31: the owner confirmed the Cornix set-up is paper trading "for now". Cornix settings seen in the admin panel
   for a scanner signal: entries 65/15/10/10, targets 60/20/10/10, trailing "Moving Target" triggered at target 1,

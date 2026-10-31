@@ -104,7 +104,7 @@ def scan(symbols, interval=20, log="mygg_flips.csv", rules=DEFAULT_RULES, once=F
     original's batches never repeat a coin). The cooldown is a guess to tune against the original.
     cooldown_scope: "rule" (coin+rule+direction, the default), "dir" (coin+direction, any rule) or "coin".
     max_per_hour: cap on published signals per UTC hour (0 = no cap)."""
-    cache = {}
+    cache, told = {}, False
     heartbeat = os.path.join(os.path.dirname(os.path.abspath(log)), "mygg_heartbeat")
     seen, last_pub, in_candle, hours = _restore(log, cooldown_scope)
     if not os.path.exists(log):
@@ -114,6 +114,11 @@ def scan(symbols, interval=20, log="mygg_flips.csv", rules=DEFAULT_RULES, once=F
         try:
             now = int(time.time() * 1000)
             prices = {p["symbol"]: float(p["price"]) for p in _get("ticker/price")}
+            if not told:
+                told = True
+                missing = [x for x in symbols if market(x)[0] not in prices]
+                print(f"watching {len(symbols) - len(missing)} coins" +
+                      (f"; not on Binance futures, skipped: {' '.join(missing)}" if missing else ""), flush=True)
             for sym in symbols:
                 api, scale = market(sym)
                 key = sym + "USDT"                              # the name shown in signals and the log

@@ -133,6 +133,20 @@ class ScanTests(unittest.TestCase):
         self.assertEqual(flags, ["1", "0"])
 
 
+class WatchlistTests(unittest.TestCase):
+    def test_unknown_coins_are_reported_once_and_skipped(self):
+        import os, tempfile
+        from unittest import mock
+        from mygg import live
+        log = os.path.join(tempfile.mkdtemp(), "w.csv")
+        with mock.patch.object(live, "_get", lambda path, **kw: [{"symbol": "BTCUSDT", "price": "1"}] if path == "ticker/price" else []), \
+                mock.patch("builtins.print") as pr:
+            live.scan(["BTC", "NOPE"], once=True, log=log, rules=[])
+        said = " ".join(str(a) for c in pr.call_args_list for a in c[0])
+        self.assertIn("watching 1 coins", said)
+        self.assertIn("skipped: NOPE", said)
+
+
 class ScaledCoinTests(unittest.TestCase):
     def test_1000x_contracts_are_scaled_in_signals_and_log(self):
         import csv, os, tempfile, time
