@@ -160,6 +160,17 @@ stacked on the same coin and direction (ETH long x11, ETH short x10, BTC long x8
 reports after restarting (not yet recorded). Everything logged before it is the unrestricted period. Positions already
 open are not closed by this.
 
+## Cornix full export seen 2026-10-31 (1072 signals, 28 Oct 17:32 to 31 Oct 09:15 UTC, chat "Botbac")
+Includes closed trades. Status: Partial Targets Achieved 493 (mean +10.7%), Cancelled 270 (mean +9.7%), All Targets
+Achieved 119 (mean +63.9%), still open 181 (mean +1.3%), Stopped Out only 9 (mean -71%). Closed trades 891: winners 763 (avg
++24.7%), losers 121 (avg -32.8%). 232 of the 270 cancellations ended within 2.5 min of an OPPOSITE signal on the same
+coin (0 with a same-direction signal): the owner's Cornix closes the old trade when a reverse signal arrives. Cancelled
+before any target: 119 trades, mean -24.5%, which is how losses are realised, far smaller than a stop-out (-110%).
+So Cornix's real result is much better than the evaluator model (mean +14% per signal vs +3-4%); likely reasons: the
+reversal exit, moving-target trailing, paper fills at signal prices. Signal-level profit is per signal margin; no
+balance column, so account change still unknown. Do not block opposite signals (`--cooldown-scope coin`): they act as
+the loss limiter. `tools/cornix_report.py` handles these exports.
+
 ## Owner confirmations
 - 2026-10-31: the owner confirmed the Cornix set-up is paper trading "for now". Cornix settings seen in the admin panel
   for a scanner signal: entries 65/15/10/10, targets 60/20/10/10, trailing "Moving Target" triggered at target 1,
