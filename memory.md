@@ -171,6 +171,13 @@ reversal exit, moving-target trailing, paper fills at signal prices. Signal-leve
 balance column, so account change still unknown. Do not block opposite signals (`--cooldown-scope coin`): they act as
 the loss limiter. `tools/cornix_report.py` handles these exports.
 
+## Per-coin results (Cornix full export, 1072 signals, 37 coins, 28-31 Oct)
+Mean profit per signal ranges from +24.8% (RENDER) to +3.6% (ETH, 42 signals, 21 still open). A permutation test says the
+spread between coins is no larger than chance (p about 0.89), so no coin is reliably better; do not prune the watchlist
+on this. Coins with the most cancel-losses/stops: POL 10, TRX 8, KAS 6, LTC 6, OP 7. Recheck on the month's data,
+splitting first half vs second half. The scanner uses a fixed hand-picked watchlist (`DEFAULT_WATCHLIST` in
+`mygg/live.py`), checked every 20 s; the original also looks like a fixed list scanned in a fixed order.
+
 ## Owner confirmations
 - 2026-10-31: the owner confirmed the Cornix set-up is paper trading "for now". Cornix settings seen in the admin panel
   for a scanner signal: entries 65/15/10/10, targets 60/20/10/10, trailing "Moving Target" triggered at target 1,
