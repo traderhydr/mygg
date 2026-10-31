@@ -26,6 +26,8 @@ POLICIES = [
     ("4h per coin (any direction)", 16, "coin", 0),
     ("4h per coin+direction, max 6 an hour", 16, "dir", 6),
     ("4h per coin+direction, max 3 an hour", 16, "dir", 3),
+    ("4h per coin (any direction), max 6 an hour", 16, "coin", 6),
+    ("4h per coin (any direction), max 3 an hour", 16, "coin", 3),
 ]
 
 
