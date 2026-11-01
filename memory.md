@@ -307,3 +307,8 @@ Start time: to be recorded from the owner's `date -u`. Compare before and after 
 - Everything before this time = MACD/EMA only, no hour filter. BB trades = the 20x group in Cornix exports.
 - Blocked flips go to mygg_blocked.csv; score at month-end with tools/evaluate.py.
 - At the first scan after restart, several BB short flips were logged within 3 s (12:21:12-14), only some published; check whether BB state-at-start produced a burst (see follow-up).
+
+## BB fit from four original signals (31 Oct 17:57 UTC BTC/UNI long; 1 Nov 00:21 UTC AVAX/UNI short)
+- All four are exact template (mid price M). With M as the price: z20 = 2.77, 3.07, 2.98, 2.93 (beyond 2 sd); band-width percentile (prior 200) = 8, 8, 0, 6 -> a squeeze. Earlier z20 ~1 for BTC came from using the zone edge, not M; in a squeeze the band is tiny so the price used matters.
+- Pinned Pine strategy does not fire at these times. Text mentions squeeze/oscillator (RSI-like filter, untested).
+- BBBreak now requires width percentile <= 10 (squeeze=10, lookback=200); before this (restart 2026-11-01 12:21:23 UTC) BB fired on any 2 sd close and produced a startup burst. Squeeze version start time: to be recorded after the owner's restart.

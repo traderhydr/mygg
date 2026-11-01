@@ -126,7 +126,7 @@ class ScanTests(unittest.TestCase):
         log = os.path.join(tempfile.mkdtemp(), "g.csv")
         with mock.patch.object(live, "_get", fake_get), mock.patch.object(live, "send_telegram") as tg, \
                 mock.patch("builtins.print"):
-            live.scan(["BTC"], once=True, log=log, rules=[EMACross(), BBBreak()])
+            live.scan(["BTC"], once=True, log=log, rules=[EMACross(), BBBreak(squeeze=None)])
         self.assertEqual(tg.call_count, 1)                    # both rules flipped; only the first published
         with open(log) as f:
             flags = [line.strip().split(",")[-1] for line in f.read().strip().splitlines()[1:]]
@@ -297,6 +297,26 @@ class NotifyTests(unittest.TestCase):
                 mock.patch("builtins.print") as pr:
             self.assertFalse(live.send_telegram("hi"))
             self.assertNotIn("SECRET", " ".join(map(str, pr.call_args[0])))
+
+
+class BBSqueezeTest(unittest.TestCase):
+    def _series(self, wide):
+        import math
+        # wide swings, then a quiet stretch (squeeze) if wide is False
+        base = [100 + 3 * math.sin(i / 2) for i in range(250)]
+        quiet = [100 + 0.05 * math.sin(i) for i in range(30)]
+        noisy = [100 + 3 * math.sin(i / 2) for i in range(30)]
+        return base + (noisy if wide else quiet)
+
+    def test_breakout_needs_squeeze(self):
+        from mygg.rules import BBBreak
+        r = BBBreak()
+        quiet = self._series(False)
+        self.assertEqual(r.flip(quiet, 101.0), 1)          # out of a squeeze
+        wide = self._series(True)
+        up = max(wide[-20:]) + 20
+        self.assertEqual(BBBreak(squeeze=None).flip(wide, up), 1)
+        self.assertEqual(r.flip(wide, up), 0)              # wide band: no signal
 
 
 if __name__ == "__main__":

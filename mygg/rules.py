@@ -57,11 +57,29 @@ class EMACross(Rule):
 
 
 class BBBreak(Rule):
-    """Placeholder: price beyond the band of the previous n closes. Parameters not confirmed."""
+    """Price beyond the 2 sd band of the previous n closes, but only out of a squeeze: the band
+    width before the move is at or below the `squeeze` percentile of the previous `lookback`
+    widths. Fitted to four original signals (z20 2.8-3.1, width percentile 0-8); unconfirmed."""
     name, leverage = "BB", LEVERAGE["BB"]
 
-    def __init__(self, n=20, dev=2.0):
-        self.n, self.dev = n, dev
+    def __init__(self, n=20, dev=2.0, squeeze=10, lookback=200):
+        self.n, self.dev, self.squeeze, self.lookback = n, dev, squeeze, lookback
+
+    def _width(self, w):
+        m = sum(w) / len(w)
+        sd = (sum((x - m) ** 2 for x in w) / len(w)) ** 0.5
+        return 4 * sd / m
+
+    def squeezed(self, closed):
+        """True if the band of the last n closes is narrow versus the previous `lookback` bands."""
+        if self.squeeze is None:
+            return True
+        n = self.n
+        if len(closed) < n + 50:
+            return False
+        cur = self._width(closed[-n:])
+        hist = [self._width(closed[k - n:k]) for k in range(max(n, len(closed) - self.lookback), len(closed))]
+        return 100 * sum(1 for x in hist if x <= cur) / len(hist) <= self.squeeze
 
     def value(self, closed, live):
         """Positive above the upper band, negative below the lower band, zero inside."""
@@ -75,7 +93,8 @@ class BBBreak(Rule):
             return 0
         d0 = self.value(closed[:-1], closed[-1])
         d1 = self.value(closed, live)
-        return 1 if d1 > 0 >= d0 else -1 if d1 < 0 <= d0 else 0
+        f = 1 if d1 > 0 >= d0 else -1 if d1 < 0 <= d0 else 0
+        return f if f and self.squeezed(closed) else 0
 
     def trigger_price(self, closed):
         return None
