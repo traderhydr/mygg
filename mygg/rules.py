@@ -57,12 +57,12 @@ class EMACross(Rule):
 
 
 class BBBreak(Rule):
-    """Price beyond the 2 sd band of the previous n closes, but only out of a squeeze: the band
+    """Price beyond the 2 sd band of the previous n closes, but only out of a narrow band: the band
     width before the move is at or below the `squeeze` percentile of the previous `lookback`
-    widths. Fitted to four original signals (z20 2.8-3.1, width percentile 0-8); unconfirmed."""
+    widths. Fitted to eleven original signals (z20 2.3-3.1, width percentile 0-44, so the cut-off is 45); unconfirmed."""
     name, leverage = "BB", LEVERAGE["BB"]
 
-    def __init__(self, n=20, dev=2.0, squeeze=10, lookback=200):
+    def __init__(self, n=20, dev=2.0, squeeze=45, lookback=200):
         self.n, self.dev, self.squeeze, self.lookback = n, dev, squeeze, lookback
 
     def _width(self, w):

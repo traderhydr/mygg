@@ -43,6 +43,13 @@ def main():
     s.add_argument("--cooldown-scope", choices=["rule", "dir", "coin"], default="rule",
                    help="what the cooldown applies to: coin+rule+direction (default), coin+direction, or the whole coin")
     s.add_argument("--max-per-hour", type=int, default=0, help="cap on published signals per UTC hour (0 = no cap)")
+    s.add_argument("--rounds", action="store_true",
+                   help="post like the source: only in rounds every 3-7 h, the flips active then, one per coin")
+    s.add_argument("--round-gap", type=float, nargs=2, default=[3.0, 7.0], metavar=("MIN_H", "MAX_H"),
+                   help="hours between rounds, random within this range (default 3 7)")
+    s.add_argument("--round-max", type=int, default=9, help="most signals in one round (default 9)")
+    s.add_argument("--round-coins", nargs="*", default=None,
+                   help="coins allowed in rounds (default: the 34 coins the source uses); 'all' = the whole watchlist")
     s.add_argument("--cooldown", type=int, default=4,
                    help="candles before the same coin, rule and direction is published again (all flips are still logged)")
 
@@ -74,7 +81,10 @@ def main():
         live.scan(coins, a.interval, log=a.log,
                   rules=[RULES[r]() for r in a.rules], once=a.once, cooldown=a.cooldown,
                   cooldown_scope=a.cooldown_scope, max_per_hour=a.max_per_hour,
-                  avoid_hours=live.parse_hours(a.avoid_hours))
+                  avoid_hours=live.parse_hours(a.avoid_hours), rounds=a.rounds, round_gap=tuple(a.round_gap),
+                  round_max=a.round_max,
+                  round_coins=(coins if a.round_coins == ["all"] else
+                               [x.upper().removesuffix("USDT") for x in a.round_coins] if a.round_coins else None))
 
 
 if __name__ == "__main__":

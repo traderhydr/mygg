@@ -319,5 +319,79 @@ class BBSqueezeTest(unittest.TestCase):
         self.assertEqual(r.flip(wide, up), 0)              # wide band: no signal
 
 
+class RoundsTest(unittest.TestCase):
+    def _env(self):
+        import os, tempfile, time
+        from mygg import live
+        now = int(time.time() * 1000)
+        start = now - now % live.BAR_MS
+
+        def fake_get(path, **kw):
+            if path == "ticker/price":
+                return [{"symbol": "BTCUSDT", "price": "110.0"}, {"symbol": "DOTUSDT", "price": "110.0"}]
+            p, k = 100.0, []
+            for j in range(300, 0, -1):
+                p *= 0.999
+                k.append([start - j * live.BAR_MS, 0, 0, 0, str(p), 0])
+            k.append([start, 0, 0, 0, str(p), 0])
+            return k
+
+        d = tempfile.mkdtemp()
+        return d, os.path.join(d, "g.csv"), fake_get
+
+    def _state(self, d, nxt, last=()):
+        import json, os
+        with open(os.path.join(d, "mygg_rounds.json"), "w") as f:
+            json.dump({"next": nxt, "last": list(last)}, f)
+
+    def _scan(self, log, fake_get, **kw):
+        from unittest import mock
+        from mygg import live
+        from mygg.rules import EMACross
+        with mock.patch.object(live, "_get", fake_get), mock.patch.object(live, "send_telegram") as tg, \
+                mock.patch("builtins.print"):
+            live.scan(["BTC", "DOT"], once=True, log=log, rules=[EMACross()], rounds=True, round_pause=0, **kw)
+        return tg
+
+    def test_nothing_is_posted_before_a_round_is_due(self):
+        import csv, time
+        d, log, fake = self._env()
+        self._state(d, time.time() + 3600)
+        tg = self._scan(log, fake)
+        self.assertEqual(tg.call_count, 0)
+        rows = list(csv.DictReader(open(log)))
+        self.assertEqual([r["published"] for r in rows], ["0", "0"])        # flips are still logged
+
+    def test_a_due_round_posts_active_flips_once_per_coin(self):
+        import csv, json, os
+        d, log, fake = self._env()
+        self._state(d, 0)
+        tg = self._scan(log, fake)
+        self.assertEqual(tg.call_count, 2)
+        rows = list(csv.DictReader(open(log)))
+        self.assertEqual(sorted(r["published"] for r in rows), ["0", "0", "1", "1"])
+        st = json.load(open(os.path.join(d, "mygg_rounds.json")))
+        self.assertEqual(sorted(st["last"]), ["BTCUSDT", "DOTUSDT"])
+        self.assertGreater(st["next"], __import__("time").time() + 2.9 * 3600)   # next round 3-7 h away
+
+    def test_coins_from_the_previous_round_are_skipped_and_the_list_is_respected(self):
+        d, log, fake = self._env()
+        self._state(d, 0, last=["BTCUSDT"])
+        tg = self._scan(log, fake)
+        self.assertEqual(tg.call_count, 1)                                  # BTC posted last round
+        d, log, fake = self._env()
+        self._state(d, 0)
+        tg = self._scan(log, fake, round_coins=["BTC"])
+        self.assertEqual(tg.call_count, 1)                                  # DOT is not on the round list
+
+    def test_pick_round_priority_and_limit(self):
+        from mygg import live
+        from mygg.rules import BBBreak, EMACross, MACDCross
+        c = lambda o, k, r: dict(order=o, key=k, rule=r, side=1, price=1.0)
+        cands = [c(0, "A", BBBreak()), c(0, "A", MACDCross()), c(1, "B", EMACross()), c(2, "C", BBBreak()), c(3, "D", MACDCross())]
+        got = live.pick_round(cands, {"D"}, 2)
+        self.assertEqual([(x["key"], x["rule"].name) for x in got], [("A", "MACD Cross"), ("B", "EMA Cross")])
+
+
 if __name__ == "__main__":
     unittest.main()

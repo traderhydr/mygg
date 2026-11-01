@@ -108,8 +108,50 @@ def parse_hours(specs):
     return out
 
 
+# The 34 coins that appear in the source channel's signals (week of 25 Oct - 1 Nov); the original never posted ETH,
+# SOL, XRP, BNB, KAS, LDO and other coins on our broader list.
+SOURCE_COINS = ("AAVE ADA APT ARB ATOM AVAX BTC DOGE DOT ENA FET FLOKI GRT ICP IMX INJ JUP LINK LTC NEAR ONDO OP "
+                "ORDI POL PYTH RENDER SEI STRK SUI TRX UNI WIF WLD XLM").split()
+# One signal per coin per round: when several rules flipped on a coin, the first of these wins (a guess: the source
+# posted ICP at 21:06 on 30 Oct as MACD although its Bollinger rule had also flipped).
+PRIORITY = {"MACD Cross": 0, "EMA Cross": 1, "BB": 2}
+
+
+def pick_round(cands, previous, limit):
+    """Choose what a round publishes from candidates {order, key, rule, side, price}: one per coin by rule
+    priority, nothing for a coin posted in the previous round, at most `limit`, rule priority then list order."""
+    best = {}
+    for c in cands:
+        if c["key"] in previous:
+            continue
+        cur = best.get(c["key"])
+        if cur is None or PRIORITY.get(c["rule"].name, 9) < PRIORITY.get(cur["rule"].name, 9):
+            best[c["key"]] = c
+    chosen = sorted(best.values(), key=lambda c: (PRIORITY.get(c["rule"].name, 9), c["order"]))
+    return chosen[:limit]
+
+
+def _round_state(path, gap, rng):
+    """{'next': epoch s, 'last': [keys posted in the previous round]}; a new file schedules the first round soon."""
+    try:
+        with open(path) as f:
+            st = json.load(f)
+        return {"next": float(st["next"]), "last": list(st.get("last", []))}
+    except (OSError, ValueError, KeyError):
+        return {"next": time.time() + rng.uniform(600, gap[1] * 3600), "last": []}
+
+
+def _save_round_state(path, st):
+    try:
+        with open(path, "w") as f:
+            json.dump(st, f)
+    except OSError:
+        pass
+
+
 def scan(symbols, interval=20, log="mygg_flips.csv", rules=DEFAULT_RULES, once=False, cooldown=4,
-         cooldown_scope="rule", max_per_hour=0, avoid_hours=frozenset()):
+         cooldown_scope="rule", max_per_hour=0, avoid_hours=frozenset(), rounds=False, round_gap=(3.0, 7.0),
+         round_max=9, round_coins=None, round_pause=1.0, rng=None):
     """Log every raw flip; publish (print + Telegram) unless the same coin, rule and direction was
     published within `cooldown` candles, or the coin already has a published signal in this candle (the
     original's batches never repeat a coin). The cooldown is a guess to tune against the original.
@@ -117,7 +159,17 @@ def scan(symbols, interval=20, log="mygg_flips.csv", rules=DEFAULT_RULES, once=F
     max_per_hour: cap on published signals per UTC hour (0 = no cap).
     avoid_hours: UTC hours of the day with no new signals. Flips in them are still logged (published 0) and also written to
     mygg_blocked.csv next to the log, in the same format, so their results can be checked later. Reverse signals are blocked
-    too, so a trade opened before a blocked window is not closed by a reversal until the window ends."""
+    too, so a trade opened before a blocked window is not closed by a reversal until the window ends.
+    rounds: publish like the source does, in rounds. Flips are still logged (published 0) as they happen, but nothing is
+    posted until a round: every `round_gap` hours (random between the two numbers, the source's gaps were 3-7 h) the
+    scanner posts the flips that are active at that moment, on `round_coins` only (default SOURCE_COINS), one per coin,
+    skipping coins posted in the previous round, at most `round_max`, `round_pause` seconds apart. Round state is kept in
+    mygg_rounds.json next to the log, so a restart does not reset the schedule. Cooldown settings do not apply."""
+    import random
+    rng = rng or random.Random()
+    round_set = set(round_coins if round_coins is not None else SOURCE_COINS)
+    rpath = os.path.join(os.path.dirname(os.path.abspath(log)), "mygg_rounds.json")
+    rstate = _round_state(rpath, round_gap, rng) if rounds else None
     cache, told = {}, False
     heartbeat = os.path.join(os.path.dirname(os.path.abspath(log)), "mygg_heartbeat")
     seen, last_pub, in_candle, hours = _restore(log, cooldown_scope)
@@ -155,7 +207,7 @@ def scan(symbols, interval=20, log="mygg_flips.csv", rules=DEFAULT_RULES, once=F
                     publish = (start - last_pub.get(ck, -10 ** 15) >= cooldown * BAR_MS
                                and (key, start) not in in_candle           # one published signal per coin per candle
                                and (not max_per_hour or hours.get(hour, 0) < max_per_hour)
-                               and not blocked)
+                               and not blocked and not rounds)
                     sig = template.build(side, price, ladder=True)
                     sig.update(symbol=key, rule=rule.name, leverage=rule.leverage)
                     if publish:
@@ -177,6 +229,44 @@ def scan(symbols, interval=20, log="mygg_flips.csv", rules=DEFAULT_RULES, once=F
                             if new:
                                 w.writerow(["time_utc", "symbol", "rule", "direction", "price", "entry1", "stop", "published"])
                             w.writerow(row[:7] + [1])
+            if rounds and time.time() >= rstate["next"]:
+                cands = []
+                for order, sym in enumerate(symbols):
+                    api, scale = market(sym)
+                    key = sym + "USDT"
+                    if sym not in round_set or api not in prices or key not in cache:
+                        continue
+                    for rule in rules:
+                        side = rule.flip(cache[key][1], prices[api])
+                        if side:
+                            cands.append(dict(order=order, key=key, rule=rule, side=side, price=prices[api] / scale))
+                chosen = pick_round(cands, set(rstate["last"]), round_max)
+                blocked = time.gmtime().tm_hour in avoid_hours
+                print(f"round: {len(cands)} active flips, {len(chosen)} {'blocked' if blocked else 'published'}", flush=True)
+                posted = []
+                for c in chosen:
+                    sig = template.build(c["side"], c["price"], ladder=True)
+                    sig.update(symbol=c["key"], rule=c["rule"].name, leverage=c["rule"].leverage)
+                    row = [time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()), c["key"], c["rule"].name,
+                           sig["side"], c["price"], sig["entries"][0], sig["stop"], 0 if blocked else 1]
+                    if blocked:
+                        bpath = os.path.join(os.path.dirname(os.path.abspath(log)), "mygg_blocked.csv")
+                        new = not os.path.exists(bpath)
+                        with open(bpath, "a", newline="") as f:
+                            w = csv.writer(f)
+                            if new:
+                                w.writerow(["time_utc", "symbol", "rule", "direction", "price", "entry1", "stop", "published"])
+                            w.writerow(row[:7] + [1])
+                        continue
+                    text = format_signal(sig)
+                    print(text, "\n", flush=True)
+                    send_telegram(text)
+                    with open(log, "a", newline="") as f:
+                        csv.writer(f).writerow(row)
+                    posted.append(c["key"])
+                    time.sleep(round_pause)
+                rstate = {"next": time.time() + rng.uniform(*round_gap) * 3600, "last": posted}
+                _save_round_state(rpath, rstate)
         except Exception as ex:                                 # network hiccup: keep going
             print("scan error:", type(ex).__name__, flush=True)
         try:                                                    # proof of life for tools/status.sh

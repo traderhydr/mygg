@@ -41,3 +41,18 @@ and put the token and your chat id in a file kept out of git (several chats: sep
 Every flip is logged to `mygg_flips.csv` (column `published`). A signal is only published (printed and sent)
 if the same coin, rule and direction was not published within `--cooldown` candles (default 4, a guess), and a
 restart never repeats a flip already logged in the same candle.
+
+## Rounds mode (like the source channel)
+
+The source does not post flips as they happen. It posts in rounds, 30-34 times a week (gaps of 3-7 h), listing the
+flips that are active at that moment on its own coins, one per coin. `--rounds` does the same:
+
+    ./tools/run_scanner.sh --rounds --rules macd ema bb --add NEAR FIL TIA HBAR LDO ALGO ETC BCH TON TAO
+
+- flips are still logged as they happen (`published` 0) so the continuous version can be compared later;
+- a round is posted every 3-7 h (random, `--round-gap MIN MAX`); the next time is kept in `mygg_rounds.json`
+  next to the log, so a restart does not reset it;
+- a round posts the flips active at that moment, on the 34 coins the source uses (`--round-coins`, or
+  `--round-coins all`), one per coin (MACD, then EMA, then BB), skipping coins posted in the previous round,
+  at most `--round-max` (9), a second apart;
+- `--cooldown` settings do not apply; `--avoid-hours` still skips a round that falls in a blocked hour.
