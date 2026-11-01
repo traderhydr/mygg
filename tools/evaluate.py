@@ -60,8 +60,12 @@ def simulate(c, i0, side, price, lev, fee, entry_w=ENTRY_W, tp_w=TP_W, trail="br
             reason, end = ("breakeven" if be else "stop"), k
             break
         for j in range(4):
+            if qty <= 1e-12:
+                break                                # everything already closed by an earlier target in this candle
             if not hit[j] and fav(k, tps[j]):
                 left = sum(tp_w[m] for m in range(4) if not hit[m])
+                if left <= 0:
+                    continue
                 close(qty * tp_w[j] / left, tps[j])
                 hit[j] = True
                 if j == 0:
