@@ -252,6 +252,14 @@ Long +15.5% (0.73% move) vs short +11.7% (0.56%); MACD short had the most cancel
 results; the market did. `tools/sweep.py` tests Cornix-side settings (entry split, target split, trailing) on the same signals;
 run it and check consistency across days before changing anything.
 
+## Settings sweep (corrected, 1120 signals, 28 Oct 17:00 to 31 Oct 17:00, ranked on the full planned size, fees 0.05%/side, no reversal exit)
+Entry split barely matters (top four entry splits within 1.8-2.1%); the target split does: equal 25/25/25/25 targets take the top
+8 rows (about +2.0%) vs the owner's 60/20/10/10 at +0.3% (rank 34 of 50, positive on 1 of 4 days). Even the best is positive on
+only 2 of 4 days, and the model is pessimistic against Cornix (it has fees and no reverse-signal exit). A front-loaded target split
+did worst in this trending window only if all-in at target 1 (100/0/0/0: -1.4% to -2.0%). Not conclusive: 4 days, correlated signals.
+Suggested test instead of changing the live paper settings: a second demo bot on the same group with 25/25/25/25 targets, run side by side.
+An earlier sweep ranked on margin used and was biased towards deep, rarely filled entries; fixed.
+
 ## Owner confirmations
 - 2026-10-31: the owner confirmed the Cornix set-up is paper trading "for now". Cornix settings seen in the admin panel
   for a scanner signal: entries 65/15/10/10, targets 60/20/10/10, trailing "Moving Target" triggered at target 1,
