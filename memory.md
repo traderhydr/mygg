@@ -301,3 +301,9 @@ Start time: to be recorded from the owner's `date -u`. Compare before and after 
 - Results come from about a dozen validated signals and a 30-day window. Treat stated win rates as unverified.
 - The template risks more than the margin at a stop (5% x 15-25x). The owner must not move Cornix to a live account
   on this evidence.
+
+## Period change: BB on + avoid hours (applied)
+- Applied 2026-11-01 12:21:23 UTC on the instance: `--rules macd ema bb --avoid-hours 5-8 21-24 --cooldown 16 --cooldown-scope dir`, same 52 coins.
+- Everything before this time = MACD/EMA only, no hour filter. BB trades = the 20x group in Cornix exports.
+- Blocked flips go to mygg_blocked.csv; score at month-end with tools/evaluate.py.
+- At the first scan after restart, several BB short flips were logged within 3 s (12:21:12-14), only some published; check whether BB state-at-start produced a burst (see follow-up).
