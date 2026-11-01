@@ -21,28 +21,30 @@ def main():
     ap.add_argument("--data", default="data")
     ap.add_argument("--cuts", type=float, nargs="+", default=[10, 15, 20, 30, 40])
     ap.add_argument("--signals", default="signals_bb.csv")
+    ap.add_argument("--devs", type=float, nargs="+", default=[2.0, 2.5, 3.0], help="band sizes in stdev")
     a = ap.parse_args()
     files = sorted(glob.glob(os.path.join(a.data, "*.csv")))
     cuts = [None] + a.cuts
-    count = {c: 0 for c in cuts}
+    count = {(d, c): 0 for d in a.devs for c in cuts}
     days = 0.0
     for fp in files:
         c = load(fp)
         closes = [x[1] for x in c]
         days = max(days, len(c) / 96)
-        base = BBBreak(squeeze=None)
-        rules = {cut: BBBreak(squeeze=cut) for cut in cuts if cut is not None}
-        for i in range(60, len(closes)):
-            if base.flip(closes[:i], closes[i]) == 0:
-                continue
-            count[None] += 1
-            for cut, r in rules.items():
-                if r.squeezed(closes[:i]):
-                    count[cut] += 1
+        for d in a.devs:
+            base = BBBreak(dev=d, squeeze=None)
+            rules = {cut: BBBreak(dev=d, squeeze=cut) for cut in a.cuts}
+            for i in range(60, len(closes)):
+                if base.flip(closes[:i], closes[i]) == 0:
+                    continue
+                count[(d, None)] += 1
+                for cut, r in rules.items():
+                    if r.squeezed(closes[:i]):
+                        count[(d, cut)] += 1
     print(f"{len(files)} coins, {days:.1f} days of data; breakout events per day (all coins together):")
-    for cut in cuts:
-        label = "no squeeze filter" if cut is None else f"width percentile <= {cut:g}"
-        print(f"  {label:26s} {count[cut] / days:6.1f} per day")
+    print(f"  {'band size':>10s} " + "".join(f"{'no filter' if c is None else 'pct<=' + format(c, 'g'):>11s}" for c in cuts))
+    for d in a.devs:
+        print(f"  {d:>7g} sd  " + "".join(f"{count[(d, c)] / days:11.1f}" for c in cuts))
 
     if os.path.exists(a.signals):
         print("\nOriginal signals: does each pass the cut-off? (width percentile of the prior 200 bands)")

@@ -319,3 +319,5 @@ Start time: to be recorded from the owner's `date -u`. Compare before and after 
 - z20 (mid price): 2.77, 3.07, 2.98, 2.93, 2.47, 2.68 (all > 2). Band-width percentile: 8, 8, 0, 6, 12, 27. The cut-off of 10 rejects ARB and AAVE; text wording ("squeeze", oscillator level) varies and is not a reliable filter.
 - tools/bb_rate.py counts breakout events per day per cut-off and checks the original signals; threshold to be chosen from its output.
 - The 06:52 batch falls in the avoid-hours window 5-8 UTC: our filter would block it.
+- bb_rate on 51 coins x 10 days: 277 breakouts/day (2 sd, no filter), 75/day at width pct <= 10, 143/day at <= 30. Far too many versus the original (batches of 8+ at a time). Originals' width pct: 8.5, 8, 0, 6, 11.5, 27. Squeeze alone does not explain the original rate; tools/bb_rate.py now prints a grid of band size (2/2.5/3 sd) x squeeze cut-off. Needed: the original's count of BB posts per day.
+- Running scanner still has BB on with cut-off 10 (about 75/day before cooldown). Recommended: turn BB off until the rule is fitted.
