@@ -198,6 +198,14 @@ previous closes, fresh versus the last close; shown as BB Breakout (long) or BB 
 original also needs a squeeze, and the exact band settings. Shares the 4-hour same-direction cooldown. Start time to be
 recorded from the owner's `date -u`. Everything logged with rule "BB" is the new strategy.
 
+## Market sessions (looked at 2026-11-01, Cornix export, 1072 signals, 4 days)
+Sessions (UTC): Asia 00-08 mean +12.0%, London 08-13:30 +8.9%, New York 13:30-21 +17.6%, Late 21-24 +19.0%. Signal volume spikes
+at 07-08 UTC and 17-18 UTC. The London-open window 07-09 UTC is the weakest (n=140, mean +5%, 62% positive). The ranking
+reverses between days (29 Oct: New York +37%, Asia +8%; 30 Oct: Asia +25%, New York +5%), so it tracks each day's market
+move, not a stable session effect; a trade-level permutation test overstates significance because signals from one
+move are correlated. Use the day as the unit: `tools/sessions.py` does this (also groups by how many signals fire in
+the same candle). Needs weeks of data; do not use sessions as a filter yet.
+
 ## Owner confirmations
 - 2026-10-31: the owner confirmed the Cornix set-up is paper trading "for now". Cornix settings seen in the admin panel
   for a scanner signal: entries 65/15/10/10, targets 60/20/10/10, trailing "Moving Target" triggered at target 1,
