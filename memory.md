@@ -321,3 +321,7 @@ Start time: to be recorded from the owner's `date -u`. Compare before and after 
 - The 06:52 batch falls in the avoid-hours window 5-8 UTC: our filter would block it.
 - bb_rate on 51 coins x 10 days: 277 breakouts/day (2 sd, no filter), 75/day at width pct <= 10, 143/day at <= 30. Far too many versus the original (batches of 8+ at a time). Originals' width pct: 8.5, 8, 0, 6, 11.5, 27. Squeeze alone does not explain the original rate; tools/bb_rate.py now prints a grid of band size (2/2.5/3 sd) x squeeze cut-off. Needed: the original's count of BB posts per day.
 - Running scanner still has BB on with cut-off 10 (about 75/day before cooldown). Recommended: turn BB off until the rule is fitted.
+
+## BB turned off again
+- Restarted without bb at about 2026-11-01 12:58:36 UTC (date -u 12:59:06 after 30 s). Periods: BB loose rule 12:21:23-12:34:35; BB squeeze<=10 12:34:35-12:58:36; BB off after. Config now: --rules macd ema, --avoid-hours 5-8 21-24, --cooldown 16 --cooldown-scope dir, 52 coins.
+- Grid (51 coins x 10 days, breakouts/day): 2 sd: none 277, pct<=10 75, <=20 112, <=30 143; 2.5 sd: 181, 52, 76, 97; 3 sd: 111, 35, 50, 65. Even 3 sd + squeeze<=10 gives 35/day. Need the original's daily BB count to choose.
