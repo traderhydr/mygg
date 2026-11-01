@@ -29,13 +29,13 @@ class MultiChatTests(unittest.TestCase):
         from mygg import live
         env = {"MYGG_TG_TOKEN": "123:SECRET", "MYGG_TG_CHAT": "-1001, -1002 ,-1003"}
         with mock.patch.dict(os.environ, env, clear=True), \
-                mock.patch("urllib.request.urlopen", side_effect=[OSError("x"), None, None]) as op, \
-                mock.patch("builtins.print") as pr:
+                mock.patch("urllib.request.urlopen", side_effect=[OSError("x")] * 3 + [None, None]) as op, \
+                mock.patch("time.sleep"), mock.patch("builtins.print") as pr:
             self.assertTrue(live.send_telegram("hi"))
-        self.assertEqual(op.call_count, 3)
+        self.assertEqual(op.call_count, 5)                      # first chat: 3 tries, then the other two
         sent = [c[0][1] for c in op.call_args_list]
-        self.assertIn(b"chat_id=-1002", sent[1])
-        self.assertIn(b"chat_id=-1003", sent[2])
+        self.assertIn(b"chat_id=-1002", sent[3])
+        self.assertIn(b"chat_id=-1003", sent[4])
         self.assertNotIn("SECRET", " ".join(str(a) for c in pr.call_args_list for a in c[0]))
 
 
@@ -383,6 +383,37 @@ class RoundsTest(unittest.TestCase):
         self._state(d, 0)
         tg = self._scan(log, fake, round_coins=["BTC"])
         self.assertEqual(tg.call_count, 1)                                  # DOT is not on the round list
+
+    def test_first_schedule_is_saved_so_a_restart_keeps_it(self):
+        import json, os
+        d, log, fake = self._env()
+        self._scan(log, fake)
+        with open(os.path.join(d, "mygg_rounds.json")) as f:
+            first = json.load(f)["next"]
+        self._scan(log, fake)
+        with open(os.path.join(d, "mygg_rounds.json")) as f:
+            self.assertEqual(json.load(f)["next"], first)
+
+    def test_telegram_retries_network_errors_and_hides_the_chat_id(self):
+        import io, os, urllib.error
+        from contextlib import redirect_stdout
+        from unittest import mock
+        from mygg import live
+        calls = []
+
+        def flaky(url, data, timeout):
+            calls.append(1)
+            if len(calls) < 3:
+                raise urllib.error.URLError("blip")
+            return None
+
+        out = io.StringIO()
+        with mock.patch.dict(os.environ, {"MYGG_TG_TOKEN": "T", "MYGG_TG_CHAT": "-100123456"}), \
+                mock.patch("urllib.request.urlopen", flaky), mock.patch("time.sleep"), redirect_stdout(out):
+            ok = live.send_telegram("hi")
+        self.assertTrue(ok)
+        self.assertEqual(len(calls), 3)
+        self.assertNotIn("100123456", out.getvalue())
 
     def test_pick_round_priority_and_limit(self):
         from mygg import live

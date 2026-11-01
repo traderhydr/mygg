@@ -39,13 +39,19 @@ def send_telegram(text):
     if not token or not chats:
         return False
     sent = False
-    for chat in chats:
+    for n, chat in enumerate(chats, 1):
         data = urllib.parse.urlencode({"chat_id": chat, "text": text}).encode()
-        try:
-            urllib.request.urlopen(f"https://api.telegram.org/bot{token}/sendMessage", data, timeout=15)
-            sent = True
-        except Exception as ex:
-            print("telegram send failed:", chat, type(ex).__name__, getattr(ex, "code", ""), flush=True)
+        for attempt in range(3):                      # network blips (URLError) are retried; the chat id is never printed
+            try:
+                urllib.request.urlopen(f"https://api.telegram.org/bot{token}/sendMessage", data, timeout=15)
+                sent = True
+                break
+            except Exception as ex:
+                code = getattr(ex, "code", "")
+                print(f"telegram send failed: chat {n} {type(ex).__name__} {code}", flush=True)
+                if code or attempt == 2:              # an HTTP answer (bad chat, rate limit) is not retried
+                    break
+                time.sleep(2)
     return sent
 
 
@@ -138,7 +144,9 @@ def _round_state(path, gap, rng):
             st = json.load(f)
         return {"next": float(st["next"]), "last": list(st.get("last", []))}
     except (OSError, ValueError, KeyError):
-        return {"next": time.time() + rng.uniform(600, gap[1] * 3600), "last": []}
+        st = {"next": time.time() + rng.uniform(600, gap[1] * 3600), "last": []}
+        _save_round_state(path, st)                   # a restart before the first round keeps this time
+        return st
 
 
 def _save_round_state(path, st):
