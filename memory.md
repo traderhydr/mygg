@@ -340,3 +340,10 @@ Start time: to be recorded from the owner's `date -u`. Compare before and after 
 - Hypothesis (to test with tools/round_check.py): the original scans only at irregular times and posts the rules that flipped in that candle for a fixed list of ~33 coins, one signal per coin (priority maybe MACD > EMA > BB). Our scanner posts every flip continuously on 52 coins: ~190 signals in 12 h vs ~18 a day.
 - BB comparison at 21:06 (30 Oct): LDO, PEPE, ICP also broke the band but LDO/PEPE are not in the original's list and ICP was posted as MACD 25x; ETH at 17:57 (z 2.41, same as BTC) is not in its list.
 - round_check (candle high/low touch, 30 candles with posts): our rules flipped on 100/127 posted source signals (79%); extras on source-list coins 283, on never-listed coins 157. So the original posts only about 1 in 4 of the flips seen over the full candle, but that count includes flips after the post time inside the candle. Next: tools/round_live.py repeats the test at the exact post second with 1-minute prices.
+
+## Ours vs source (Cornix exports, window 2026-10-28 17:32 to 2026-11-01 06:43 UTC; our file = Botbac export, 1,411 signals)
+- Ours 1,336 signals (844 MACD, 492 EMA, no BB) vs source 46 (26 MACD, 9 EMA, 11 BB): about 38x on MACD+EMA (35 source). Per day: ours 137/280/487/350/82 vs source -/6/9/25/6.
+- ENA: ours 32 (20 MACD, 12 EMA) vs source 3 (EMA short 29 Oct, BB long 31 Oct, MACD short 31 Oct).
+- Our rules catch the source: for 35 source MACD/EMA signals, 27 had the same coin, direction, rule from us within the hour before (median ~7 min earlier), 35/35 within a day. The source posts a few minutes after the flip.
+- 236 of our signals (18%) are on coins the source never used (ETH 48, BNB 40, KAS 34, XRP 32, SOL 25, ETC, TIA, SHIB, BCH, FLOKI).
+- Conclusion: rules/timing close; volume ~30x too high. Open question: what the source skips (round_live result pending).
