@@ -1,0 +1,69 @@
+#!/usr/bin/env python3
+"""How many Bollinger breakouts per day would the rule produce at different squeeze thresholds?
+
+Replays ./data/<SYMBOL>.csv (from template_backtest.py fetch) with the candle close as the live
+price (a close is the last price of the candle, so this slightly undercounts intrabar flips).
+Prints events per day for no squeeze filter and for several width-percentile cut-offs, and
+checks the original signals in signals_bb.csv against each cut-off. Standard library only.
+"""
+import argparse, csv, datetime as dt, glob, os, sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+from mygg.rules import BBBreak
+
+
+def load(path):
+    with open(path) as f:
+        return [(int(r["t"]), float(r["c"])) for r in csv.DictReader(f)]
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--data", default="data")
+    ap.add_argument("--cuts", type=float, nargs="+", default=[10, 15, 20, 30, 40])
+    ap.add_argument("--signals", default="signals_bb.csv")
+    a = ap.parse_args()
+    files = sorted(glob.glob(os.path.join(a.data, "*.csv")))
+    cuts = [None] + a.cuts
+    count = {c: 0 for c in cuts}
+    days = 0.0
+    for fp in files:
+        c = load(fp)
+        closes = [x[1] for x in c]
+        days = max(days, len(c) / 96)
+        base = BBBreak(squeeze=None)
+        rules = {cut: BBBreak(squeeze=cut) for cut in cuts if cut is not None}
+        for i in range(60, len(closes)):
+            if base.flip(closes[:i], closes[i]) == 0:
+                continue
+            count[None] += 1
+            for cut, r in rules.items():
+                if r.squeezed(closes[:i]):
+                    count[cut] += 1
+    print(f"{len(files)} coins, {days:.1f} days of data; breakout events per day (all coins together):")
+    for cut in cuts:
+        label = "no squeeze filter" if cut is None else f"width percentile <= {cut:g}"
+        print(f"  {label:26s} {count[cut] / days:6.1f} per day")
+
+    if os.path.exists(a.signals):
+        print("\nOriginal signals: does each pass the cut-off? (width percentile of the prior 200 bands)")
+        with open(a.signals) as f:
+            sigs = list(csv.DictReader(f))
+        for row in sigs:
+            p = os.path.join(a.data, row["symbol"] + ".csv")
+            if not os.path.exists(p):
+                continue
+            c = load(p)
+            t = int(dt.datetime.strptime(row["time_utc"], "%Y-%m-%d %H:%M")
+                    .replace(tzinfo=dt.timezone.utc).timestamp() * 1000)
+            i = max(k for k in range(len(c)) if c[k][0] <= t)
+            closes = [x[1] for x in c[:i]]
+            r = BBBreak(squeeze=100)
+            n = r.n
+            cur = r._width(closes[-n:])
+            hist = [r._width(closes[k - n:k]) for k in range(max(n, len(closes) - 200), len(closes))]
+            pct = 100 * sum(1 for x in hist if x <= cur) / len(hist)
+            print(f"  {row['symbol']:9s} {row['time_utc']}  width percentile {pct:5.1f}")
+
+
+if __name__ == "__main__":
+    main()

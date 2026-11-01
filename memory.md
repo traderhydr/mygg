@@ -313,3 +313,9 @@ Start time: to be recorded from the owner's `date -u`. Compare before and after 
 - Pinned Pine strategy does not fire at these times. Text mentions squeeze/oscillator (RSI-like filter, untested).
 - BBBreak now requires width percentile <= 10 (squeeze=10, lookback=200); before this (restart 2026-11-01 12:21:23 UTC) BB fired on any 2 sd close and produced a startup burst. Squeeze version start time: to be recorded after the owner's restart.
 - Squeeze version restarted on the instance at about 2026-11-01 12:34:35 UTC (date -u 12:35:05 after a 30 s wait). BB period with the loose rule (no squeeze): 12:21:23 to 12:34:35 UTC; its published BB shorts (seen: HBAR, LDO, FIL, maybe more) are the loose-rule group; keep them apart from squeeze-version BB trades in the 20x group.
+
+## BB fit update (six original signals)
+- Added ARB long and AAVE long, both 2026-10-31 06:52 UTC (owner time 11:52). Signal IDs (001, 002, 007, 008) number signals inside one batch/scan pass, not per day: the 06:52 batch had at least 8 BB signals.
+- z20 (mid price): 2.77, 3.07, 2.98, 2.93, 2.47, 2.68 (all > 2). Band-width percentile: 8, 8, 0, 6, 12, 27. The cut-off of 10 rejects ARB and AAVE; text wording ("squeeze", oscillator level) varies and is not a reliable filter.
+- tools/bb_rate.py counts breakout events per day per cut-off and checks the original signals; threshold to be chosen from its output.
+- The 06:52 batch falls in the avoid-hours window 5-8 UTC: our filter would block it.
