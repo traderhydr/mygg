@@ -260,6 +260,13 @@ did worst in this trending window only if all-in at target 1 (100/0/0/0: -1.4% t
 Suggested test instead of changing the live paper settings: a second demo bot on the same group with 25/25/25/25 targets, run side by side.
 An earlier sweep ranked on margin used and was biased towards deep, rarely filled entries; fixed.
 
+## Sessions again, with export 3 (1411 signals, 28 Oct 17:32 to 1 Nov 11:05 UTC)
+Mean profit per signal / share positive / loss exits: Asia 00-08 +9.2% / 69% / 28%; London 08-13:30 +7.6% / 71% / 21%; New York 13:30-21
++14.8% / 79% / 20%; Late 21-24 +10.0% / 62% / 37% (positive on only 2 of 4 days, 90% range -11.5 to +24). Weakest hours (n>=25):
+05:00 -4.5% (n=26), 23:00 -0.1%, 07:00 +1.2% (n=99, the London-open hour), 06:00 +1.5%. Best hours 17:00, 01:00, 18:00 (about +19% to +27%).
+All sessions fade over the days (New York 29 Oct +37%, 30 Oct +5%, 31 Oct +3%). Not significant yet; recheck with `tools/sessions.py`
+on the month.
+
 ## Owner confirmations
 - 2026-10-31: the owner confirmed the Cornix set-up is paper trading "for now". Cornix settings seen in the admin panel
   for a scanner signal: entries 65/15/10/10, targets 60/20/10/10, trailing "Moving Target" triggered at target 1,
