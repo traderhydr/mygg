@@ -359,3 +359,7 @@ Start time: to be recorded from the owner's `date -u`. Compare before and after 
 - Start time to be recorded after the owner's restart; the continuous period ends then (it ran with BB off, avoid-hours 5-8 21-24 since 2026-11-01 12:58:36 UTC).
 - Rounds-mode restart on the instance: 2026-11-01 13:38:47 UTC (date -u 13:39:17 after 30 s). Config: `--rounds --rules macd ema bb --add NEAR FIL TIA HBAR LDO ALGO ETC BCH TON TAO`, no avoid-hours. The continuous period (BB off, avoid-hours 5-8 21-24) ended at that time. mygg_rounds.json was not written until the first round (fixed: first schedule is now saved; a restart before the first round re-schedules once more), and Telegram sends are retried up to 3 times and no longer print the chat id.
 - Rounds-mode final restart (with saved schedule, Telegram retries): 2026-11-01 13:43:45 UTC (date -u 13:44:15 after a 30 s wait). mygg_rounds.json: next round at 1793554489 (first round scheduled).
+
+## Source round seen live (owner pasted 8 signals, no time given; IDs 001-008 in one round)
+- ADA long EMA 15x, OP long MACD 25x, GRT long EMA 15x, PEPE long MACD 25x (prices in scientific notation, so Cornix drops it, like FLOKI), FET long BB 20x, WIF long MACD, WLD long MACD, ORDI long MACD. All long; 5 MACD, 2 EMA, 1 BB; all follow the template (stop 0.95 M). The ID restarts at 001 for the round, so IDs are per round, not shared across the day.
+- PEPE is a source coin: added to SOURCE_COINS (35 coins now). SHIB/BONK unknown.

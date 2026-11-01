@@ -114,9 +114,9 @@ def parse_hours(specs):
     return out
 
 
-# The 34 coins that appear in the source channel's signals (week of 25 Oct - 1 Nov); the original never posted ETH,
+# The 35 coins that appear in the source channel's signals (week of 25 Oct - 1 Nov); the original never posted ETH,
 # SOL, XRP, BNB, KAS, LDO and other coins on our broader list.
-SOURCE_COINS = ("AAVE ADA APT ARB ATOM AVAX BTC DOGE DOT ENA FET FLOKI GRT ICP IMX INJ JUP LINK LTC NEAR ONDO OP "
+SOURCE_COINS = ("AAVE ADA APT ARB ATOM AVAX BTC DOGE DOT ENA FET FLOKI GRT ICP IMX INJ JUP LINK LTC NEAR ONDO OP PEPE "
                 "ORDI POL PYTH RENDER SEI STRK SUI TRX UNI WIF WLD XLM").split()
 # One signal per coin per round: when several rules flipped on a coin, the first of these wins (a guess: the source
 # posted ICP at 21:06 on 30 Oct as MACD although its Bollinger rule had also flipped).

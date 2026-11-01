@@ -49,7 +49,7 @@ def main():
                    help="hours between rounds, random within this range (default 3 7)")
     s.add_argument("--round-max", type=int, default=9, help="most signals in one round (default 9)")
     s.add_argument("--round-coins", nargs="*", default=None,
-                   help="coins allowed in rounds (default: the 34 coins the source uses); 'all' = the whole watchlist")
+                   help="coins allowed in rounds (default: the 35 coins the source uses); 'all' = the whole watchlist")
     s.add_argument("--cooldown", type=int, default=4,
                    help="candles before the same coin, rule and direction is published again (all flips are still logged)")
 
