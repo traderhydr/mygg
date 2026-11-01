@@ -223,6 +223,15 @@ signals' average profit fell from +32% (28 Oct) to about 0% (1 Nov), so the equi
 gains matches. Paper has no fees, slippage or margin limit; hundreds of stacked 15-25x positions at 5% each could not be
 held in a real account. Ask the owner for one balance reading a day (same time) for `tools/equity.py`, and for the amount per signal.
 
+## Amount per signal and a reality check (owner: 5% per signal, 2026-11-01)
+Calibration: 5% of the 20,000 start = 1,000 margin per signal, fixed (not compounding). Summing profit% x filled share x 1,000 over
+the 1411 signals gives 78.7k vs the actual 77.3k (2% apart), so the signal-level profits explain the paper balance. The owner's
+reported peak (122k, 31 Oct) is not reproduced: realised-only reconstruction peaks near 82k (31 Oct 23:00 UTC) with a largest drop
+about 6k, so the 122k was probably equity including floating profit on open trades that was later given back (to check with the
+owner). Capacity/fees (first come first served, taker fee 0.05% a side, no slippage): max 20 open -> 357 trades, +10.4k net on
+20k; max 50 -> 876 trades, +29.3k; unlimited -> 1411 trades, +40.3k net vs +58.7k gross (fees about 18k, 31% of gross). A real
+20k account at 1,000 a trade can hold about 20 positions. Tool: `tools/capacity.py <cornix export>`.
+
 ## Owner confirmations
 - 2026-10-31: the owner confirmed the Cornix set-up is paper trading "for now". Cornix settings seen in the admin panel
   for a scanner signal: entries 65/15/10/10, targets 60/20/10/10, trailing "Moving Target" triggered at target 1,
