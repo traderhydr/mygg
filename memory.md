@@ -192,6 +192,12 @@ once at start which coins it watches and which are not on Binance futures. Every
 already in the list; extra coins are the owner's choice and add volume (about 5 signals a day per coin with the 4-hour
 cooldown). Fetch candles for new coins with `template_backtest.py fetch` before evaluating them.
 
+## Bollinger rule switched on (owner request, 2026-11-01)
+Command adds `--rules macd ema bb` (the later `--rules` overrides the wrapper's default). BB = price beyond a 20-candle, 2-sigma band of the
+previous closes, fresh versus the last close; shown as BB Breakout (long) or BB Breakdown (short), 20x. Unconfirmed: whether the
+original also needs a squeeze, and the exact band settings. Shares the 4-hour same-direction cooldown. Start time to be
+recorded from the owner's `date -u`. Everything logged with rule "BB" is the new strategy.
+
 ## Owner confirmations
 - 2026-10-31: the owner confirmed the Cornix set-up is paper trading "for now". Cornix settings seen in the admin panel
   for a scanner signal: entries 65/15/10/10, targets 60/20/10/10, trailing "Moving Target" triggered at target 1,
