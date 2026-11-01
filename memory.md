@@ -347,3 +347,8 @@ Start time: to be recorded from the owner's `date -u`. Compare before and after 
 - Our rules catch the source: for 35 source MACD/EMA signals, 27 had the same coin, direction, rule from us within the hour before (median ~7 min earlier), 35/35 within a day. The source posts a few minutes after the flip.
 - 236 of our signals (18%) are on coins the source never used (ETH 48, BNB 40, KAS 34, XRP 32, SOL 25, ETC, TIA, SHIB, BCH, FLOKI).
 - Conclusion: rules/timing close; volume ~30x too high. Open question: what the source skips (round_live result pending).
+
+## round_live result (flip list at the exact post second, 1-minute prices, 30 scans)
+- Our MACD/EMA/BB(no squeeze) flips found 94/127 posted source signals (74%). Extra flips at the same moments: 99 on coins the source uses (45 MACD, 31 BB, 23 EMA) and 68 on coins it never uses. So at the scan moments we see ~193 flips on its coins vs 127 posted (1.5x), against ~30x when we publish continuously. The volume gap is therefore mostly because the source scans only ~4-5 times a day (30-34 rounds in 7 days, gaps 3-7 h, irregular) and posts what is flipped at that moment.
+- Remaining extras are explained in part by: BB without squeeze filter (31), flips on coins already posted in an earlier round the same candle (e.g. 26 Oct 22:03 after 21:55), coins never used by the source (ETH BNB SOL XRP KAS...).
+- Proposed rounds mode (not built, awaiting owner's go-ahead): publish only at round times (random gap 3-7 h), only flips present at that moment, only on the source's 33 coins, one signal per coin per round, no repeat of a coin posted in the previous round, max 9 per round.
