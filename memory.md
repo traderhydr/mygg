@@ -267,6 +267,14 @@ Mean profit per signal / share positive / loss exits: Asia 00-08 +9.2% / 69% / 2
 All sessions fade over the days (New York 29 Oct +37%, 30 Oct +5%, 31 Oct +3%). Not significant yet; recheck with `tools/sessions.py`
 on the month.
 
+## Avoid-hours filter (owner decision, 2026-11-01)
+Owner asked to avoid trading in the weak hours. Implemented as `--avoid-hours 5-8 21-24` (UTC, start inclusive, end exclusive): no
+new signals in hours 05, 06, 07 and 21, 22, 23. Blocked flips are logged with published 0 and also written to `mygg_blocked.csv`
+(same format, published 1 = would have been sent) so `tools/evaluate.py mygg_blocked.csv` can score what was skipped. Caveat: reverse
+signals are blocked too, so a trade opened before a window is not closed by a reversal until it ends. Evidence at the time (export 3):
+those 6 hours held 22% of signals, mean +4.9% (57% positive) vs +12.7% (77%) in other hours; weaker on 3 of 5 days, better on 28 Oct.
+Start time: to be recorded from the owner's `date -u`. Compare before and after at month end.
+
 ## Owner confirmations
 - 2026-10-31: the owner confirmed the Cornix set-up is paper trading "for now". Cornix settings seen in the admin panel
   for a scanner signal: entries 65/15/10/10, targets 60/20/10/10, trailing "Moving Target" triggered at target 1,

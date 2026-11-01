@@ -133,6 +133,56 @@ class ScanTests(unittest.TestCase):
         self.assertEqual(flags, ["1", "0"])
 
 
+class AvoidHoursTests(unittest.TestCase):
+    def test_parse_hours(self):
+        from mygg import live
+        self.assertEqual(live.parse_hours(["5-8", "21-24"]), {5, 6, 7, 21, 22, 23})
+        self.assertEqual(live.parse_hours(["3"]), {3})
+        self.assertEqual(live.parse_hours([]), set())
+
+    def run_at(self, hour_utc, avoid):
+        import calendar, csv, os, tempfile
+        from unittest import mock
+        from mygg import live
+        from mygg.rules import EMACross
+        now = calendar.timegm((2026, 10, 31, hour_utc, 10, 0)) * 1000
+        start = now - now % live.BAR_MS
+
+        def fake_get(path, **kw):
+            if path == "ticker/price":
+                return [{"symbol": "BTCUSDT", "price": "110.0"}]
+            p, k = 100.0, []
+            for j in range(300, 0, -1):
+                p *= 0.999
+                k.append([start - j * live.BAR_MS, 0, 0, 0, str(p), 0])
+            k.append([start, 0, 0, 0, str(p), 0])
+            return k
+
+        d = tempfile.mkdtemp()
+        log = os.path.join(d, "f.csv")
+        with mock.patch.object(live, "_get", fake_get), mock.patch.object(live, "send_telegram") as tg, \
+                mock.patch.object(live.time, "time", return_value=now / 1000), mock.patch("builtins.print"):
+            live.scan(["BTC"], once=True, log=log, rules=[EMACross()], avoid_hours=avoid)
+        with open(log) as f:
+            rows = list(csv.DictReader(f))
+        bpath = os.path.join(d, "mygg_blocked.csv")
+        blocked = list(csv.DictReader(open(bpath))) if os.path.exists(bpath) else []
+        return tg.call_count, rows, blocked
+
+    def test_flip_in_an_avoided_hour_is_logged_but_not_sent(self):
+        sent, rows, blocked = self.run_at(22, {21, 22, 23})
+        self.assertEqual(sent, 0)
+        self.assertEqual(rows[0]["published"], "0")
+        self.assertEqual(len(blocked), 1)
+        self.assertEqual(blocked[0]["published"], "1")
+
+    def test_flip_in_a_normal_hour_is_sent(self):
+        sent, rows, blocked = self.run_at(10, {21, 22, 23})
+        self.assertEqual(sent, 1)
+        self.assertEqual(rows[0]["published"], "1")
+        self.assertEqual(blocked, [])
+
+
 class WatchlistTests(unittest.TestCase):
     def test_unknown_coins_are_reported_once_and_skipped(self):
         import os, tempfile

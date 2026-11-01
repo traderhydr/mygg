@@ -38,6 +38,8 @@ def main():
     s.add_argument("--rules", nargs="*", choices=sorted(RULES), default=["macd", "ema"],
                    help="bb is an unconfirmed placeholder, so it is off by default")
     s.add_argument("--log", default="mygg_flips.csv")
+    s.add_argument("--avoid-hours", nargs="*", default=[],
+                   help='UTC hours with no new signals, e.g. --avoid-hours 5-8 21-24 (start inclusive, end exclusive)')
     s.add_argument("--cooldown-scope", choices=["rule", "dir", "coin"], default="rule",
                    help="what the cooldown applies to: coin+rule+direction (default), coin+direction, or the whole coin")
     s.add_argument("--max-per-hour", type=int, default=0, help="cap on published signals per UTC hour (0 = no cap)")
@@ -71,7 +73,8 @@ def main():
                 coins.append(x)
         live.scan(coins, a.interval, log=a.log,
                   rules=[RULES[r]() for r in a.rules], once=a.once, cooldown=a.cooldown,
-                  cooldown_scope=a.cooldown_scope, max_per_hour=a.max_per_hour)
+                  cooldown_scope=a.cooldown_scope, max_per_hour=a.max_per_hour,
+                  avoid_hours=live.parse_hours(a.avoid_hours))
 
 
 if __name__ == "__main__":

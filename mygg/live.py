@@ -97,13 +97,27 @@ def _restore(log, scope="rule"):
     return seen, last_pub, in_candle, hours
 
 
+def parse_hours(specs):
+    """['5-8', '21-24'] -> {5,6,7,21,22,23}; a bare number means that hour only. Start inclusive, end exclusive, UTC."""
+    out = set()
+    for sp in specs or []:
+        lo, _, hi = str(sp).partition("-")
+        lo = int(lo)
+        hi = int(hi) if hi else lo + 1
+        out.update(h % 24 for h in range(lo, hi))
+    return out
+
+
 def scan(symbols, interval=20, log="mygg_flips.csv", rules=DEFAULT_RULES, once=False, cooldown=4,
-         cooldown_scope="rule", max_per_hour=0):
+         cooldown_scope="rule", max_per_hour=0, avoid_hours=frozenset()):
     """Log every raw flip; publish (print + Telegram) unless the same coin, rule and direction was
     published within `cooldown` candles, or the coin already has a published signal in this candle (the
     original's batches never repeat a coin). The cooldown is a guess to tune against the original.
     cooldown_scope: "rule" (coin+rule+direction, the default), "dir" (coin+direction, any rule) or "coin".
-    max_per_hour: cap on published signals per UTC hour (0 = no cap)."""
+    max_per_hour: cap on published signals per UTC hour (0 = no cap).
+    avoid_hours: UTC hours of the day with no new signals. Flips in them are still logged (published 0) and also written to
+    mygg_blocked.csv next to the log, in the same format, so their results can be checked later. Reverse signals are blocked
+    too, so a trade opened before a blocked window is not closed by a reversal until the window ends."""
     cache, told = {}, False
     heartbeat = os.path.join(os.path.dirname(os.path.abspath(log)), "mygg_heartbeat")
     seen, last_pub, in_candle, hours = _restore(log, cooldown_scope)
@@ -137,9 +151,11 @@ def scan(symbols, interval=20, log="mygg_flips.csv", rules=DEFAULT_RULES, once=F
                     seen.add((key, rule.name, start, side))
                     ck = _cooldown_key(key, rule.name, side, cooldown_scope)
                     hour = now // 3600000
+                    blocked = time.gmtime(now / 1000).tm_hour in avoid_hours
                     publish = (start - last_pub.get(ck, -10 ** 15) >= cooldown * BAR_MS
                                and (key, start) not in in_candle           # one published signal per coin per candle
-                               and (not max_per_hour or hours.get(hour, 0) < max_per_hour))
+                               and (not max_per_hour or hours.get(hour, 0) < max_per_hour)
+                               and not blocked)
                     sig = template.build(side, price, ladder=True)
                     sig.update(symbol=key, rule=rule.name, leverage=rule.leverage)
                     if publish:
@@ -149,9 +165,18 @@ def scan(symbols, interval=20, log="mygg_flips.csv", rules=DEFAULT_RULES, once=F
                         text = format_signal(sig)
                         print(text, "\n", flush=True)
                         send_telegram(text)
+                    row = [time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()), key, rule.name,
+                           sig["side"], price, sig["entries"][0], sig["stop"], int(publish)]
                     with open(log, "a", newline="") as f:
-                        csv.writer(f).writerow([time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()), key, rule.name,
-                                                sig["side"], price, sig["entries"][0], sig["stop"], int(publish)])
+                        csv.writer(f).writerow(row)
+                    if blocked:                                           # would have been published
+                        bpath = os.path.join(os.path.dirname(os.path.abspath(log)), "mygg_blocked.csv")
+                        new = not os.path.exists(bpath)
+                        with open(bpath, "a", newline="") as f:
+                            w = csv.writer(f)
+                            if new:
+                                w.writerow(["time_utc", "symbol", "rule", "direction", "price", "entry1", "stop", "published"])
+                            w.writerow(row[:7] + [1])
         except Exception as ex:                                 # network hiccup: keep going
             print("scan error:", type(ex).__name__, flush=True)
         try:                                                    # proof of life for tools/status.sh
