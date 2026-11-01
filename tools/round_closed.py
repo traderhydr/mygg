@@ -30,8 +30,8 @@ def main():
     in_list = {r["symbol"] for r in src}
     coins = {os.path.basename(p)[:-4]: load(p) for p in sorted(glob.glob(os.path.join(a.data, "*.csv")))}
     rules = {"MACD Cross": MACDCross(), "EMA Cross": EMACross(), "BB": BBBreak(squeeze=None)}
-    rows = sorted((int(dt.datetime.strptime(r["time_utc"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=dt.timezone.utc).timestamp()), r)
-                  for r in src)
+    rows = sorted(((int(dt.datetime.strptime(r["time_utc"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=dt.timezone.utc).timestamp()), r)
+                   for r in src), key=lambda x: x[0])
     scans, cur = [], []
     for ts, r in rows:
         if cur and ts - cur[-1][0] > a.gap:
