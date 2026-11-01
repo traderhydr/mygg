@@ -217,6 +217,12 @@ No 20x (BB) rows appear yet, so the Bollinger rule was not running at export tim
 small losses and near-zero averages would be negative with costs. Open question for later: a cool-down after a reversal
 on a coin to damp whipsaw (test offline first).
 
+## Paper account balance (owner, 2026-11-01 about 11:30 UTC)
+Started 20,000; now 77,302 (+286.5%); peak 122,000 (+510%), date of the peak not given. From the peak: -44,698 (-36.6%). The
+signals' average profit fell from +32% (28 Oct) to about 0% (1 Nov), so the equity curve flattening and giving back
+gains matches. Paper has no fees, slippage or margin limit; hundreds of stacked 15-25x positions at 5% each could not be
+held in a real account. Ask the owner for one balance reading a day (same time) for `tools/equity.py`, and for the amount per signal.
+
 ## Owner confirmations
 - 2026-10-31: the owner confirmed the Cornix set-up is paper trading "for now". Cornix settings seen in the admin panel
   for a scanner signal: entries 65/15/10/10, targets 60/20/10/10, trailing "Moving Target" triggered at target 1,
