@@ -325,3 +325,9 @@ Start time: to be recorded from the owner's `date -u`. Compare before and after 
 ## BB turned off again
 - Restarted without bb at about 2026-11-01 12:58:36 UTC (date -u 12:59:06 after 30 s). Periods: BB loose rule 12:21:23-12:34:35; BB squeeze<=10 12:34:35-12:58:36; BB off after. Config now: --rules macd ema, --avoid-hours 5-8 21-24, --cooldown 16 --cooldown-scope dir, 52 coins.
 - Grid (51 coins x 10 days, breakouts/day): 2 sd: none 277, pct<=10 75, <=20 112, <=30 143; 2.5 sd: 181, 52, 76, 97; 3 sd: 111, 35, 50, 65. Even 3 sd + squeeze<=10 gives 35/day. Need the original's daily BB count to choose.
+
+## Eleven original BB signals (all 20x, exact template; 11 in ~27 h from 30 Oct 21:06 UTC to 1 Nov 00:21 UTC = ~10/day)
+- Times UTC: 30 Oct 21:06 FLOKI short, WIF, ONDO, PYTH long; 31 Oct 06:52 ARB, AAVE long; 06:56 ENA long; 17:57 BTC, UNI long; 1 Nov 00:21 AVAX, UNI short. Signal IDs are probably shared with MACD/EMA signals (gaps).
+- z20 (mid price): 2.32-3.07 -> 2 sd band is right (2.5 would reject three). Width percentile: 8.5, 8, 0, 6, 11.5, 27, 31, 11, 44, 41, 9 -> not a strict squeeze; all below the median.
+- Our rule at 2 sd + width<=45 still gives roughly 150+/day versus the original ~10/day: an unknown selection condition removes ~90%. Next step: tools/bb_discriminate.py compares breakouts the original picked with those it did not at each batch time (RSI, move size, range).
+- Three of the originals fall in our avoid-hours windows (21:06 and 06:52/06:56 UTC).
