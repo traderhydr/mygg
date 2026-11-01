@@ -244,6 +244,14 @@ gains and the later losses. (4) Only one demo account is connected to this bot (
 signal/group view). To do: ask for the bot's Trades export (closed trades with dollar profit and size) and a screenshot of the bot
 configuration (amount, max open trades, opposite-signal handling) to explain why only 43% of signals were traded.
 
+## First 3 days (28 Oct 17:00 to 31 Oct 17:00 UTC, Cornix signal export, 1143 signals): which settings did best?
+MACD(25x) +16.2% vs EMA(15x) +9.6% per signal, but the same average price move (0.65% vs 0.64%): leverage, not rule quality.
+Long +15.5% (0.73% move) vs short +11.7% (0.56%); MACD short had the most cancel-before-target (29%). By day: +32.3, +18.9,
++9.5, +5.1% (price move 1.45 to 0.24%). By scanner version: v1 +31.6% (n=50), v2 1h cooldown +23.4% (n=356), v3 one-per-coin-per-candle
++7.7% (n=737): confounded with the fading days, not an effect of the settings. Conclusion: no scanner setting explains the early
+results; the market did. `tools/sweep.py` tests Cornix-side settings (entry split, target split, trailing) on the same signals;
+run it and check consistency across days before changing anything.
+
 ## Owner confirmations
 - 2026-10-31: the owner confirmed the Cornix set-up is paper trading "for now". Cornix settings seen in the admin panel
   for a scanner signal: entries 65/15/10/10, targets 60/20/10/10, trailing "Moving Target" triggered at target 1,
