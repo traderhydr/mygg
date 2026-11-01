@@ -217,13 +217,13 @@ No 20x (BB) rows appear yet, so the Bollinger rule was not running at export tim
 small losses and near-zero averages would be negative with costs. Open question for later: a cool-down after a reversal
 on a coin to damp whipsaw (test offline first).
 
-## Paper account balance (owner, 2026-11-01 about 11:30 UTC)
+## PARTLY SUPERSEDED, see the screenshot correction: Paper account balance (owner, 2026-11-01 about 11:30 UTC)
 Started 20,000; now 77,302 (+286.5%); peak 122,000 (+510%), date of the peak not given. From the peak: -44,698 (-36.6%). The
 signals' average profit fell from +32% (28 Oct) to about 0% (1 Nov), so the equity curve flattening and giving back
 gains matches. Paper has no fees, slippage or margin limit; hundreds of stacked 15-25x positions at 5% each could not be
 held in a real account. Ask the owner for one balance reading a day (same time) for `tools/equity.py`, and for the amount per signal.
 
-## Amount per signal and a reality check (owner: 5% per signal, 2026-11-01)
+## SUPERSEDED by the screenshot correction below: Amount per signal and a reality check (owner: 5% per signal, 2026-11-01)
 Calibration: 5% of the 20,000 start = 1,000 margin per signal, fixed (not compounding). Summing profit% x filled share x 1,000 over
 the 1411 signals gives 78.7k vs the actual 77.3k (2% apart), so the signal-level profits explain the paper balance. The owner's
 reported peak (122k, 31 Oct) is not reproduced: realised-only reconstruction peaks near 82k (31 Oct 23:00 UTC) with a largest drop
@@ -231,6 +231,18 @@ about 6k, so the 122k was probably equity including floating profit on open trad
 owner). Capacity/fees (first come first served, taker fee 0.05% a side, no slippage): max 20 open -> 357 trades, +10.4k net on
 20k; max 50 -> 876 trades, +29.3k; unlimited -> 1411 trades, +40.3k net vs +58.7k gross (fees about 18k, 31% of gross). A real
 20k account at 1,000 a trade can hold about 20 positions. Tool: `tools/capacity.py <cornix export>`.
+
+## CORRECTION from the Cornix bot screenshot (2026-11-01 11:33 UTC)
+Screenshot of "Botbac Signals Bot" (DEMO TRADING banner, account "My Binance Demo - Futures", group "Botbac"): Closed Trades 588,
+$77,302.39 (accumulated profit of closed trades, NOT the balance; balance would be about 97k if the start was 20k), Open Trades 17.
+The Accumulated Profit chart is flat until about 28 Oct, peaks at about 121,593 around 30-31 Oct, then falls to about 77-80k.
+So: (1) the owner's 122k peak was a REALISED peak, not floating equity; about 44k (36%) of realised profit was given back
+in roughly a day. (2) The bot took 605 trades (588 closed + 17 open) out of 1411 signals in the group export, so the signal exports
+are signal-level, not this bot's trades. (3) My statement that fixed 1,000 per signal reproduced the "balance" within 2% was a
+coincidence from misreading profit as balance; the sizing is probably 5% of the current balance (compounding), which magnifies
+gains and the later losses. (4) Only one demo account is connected to this bot (the "10 exchanges" in earlier exports came from the
+signal/group view). To do: ask for the bot's Trades export (closed trades with dollar profit and size) and a screenshot of the bot
+configuration (amount, max open trades, opposite-signal handling) to explain why only 43% of signals were traded.
 
 ## Owner confirmations
 - 2026-10-31: the owner confirmed the Cornix set-up is paper trading "for now". Cornix settings seen in the admin panel
