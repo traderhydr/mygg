@@ -206,6 +206,17 @@ move, not a stable session effect; a trade-level permutation test overstates sig
 move are correlated. Use the day as the unit: `tools/sessions.py` does this (also groups by how many signals fire in
 the same candle). Needs weeks of data; do not use sessions as a filter yet.
 
+## Cornix export 3 (1411 signals, 28 Oct 17:32 to 1 Nov 11:05 UTC), the edge fades (2026-11-01)
+Mean profit per signal by day (closed only): 28 Oct +32.3%, 29 Oct +18.9%, 30 Oct +9.6%, 31 Oct +3.3%, 1 Nov +0.4% (partial).
+Blocks: 30 Oct 12-24 +6.2% (85% positive); 31 Oct 00-08 +5.8%; 08-14:51 +4.2% (57%); after the 14:51 UTC change -0.1% (47%);
+1 Nov 00-11 -0.4% (40%). The fade started before the 31 Oct 14:51 change, so it is not attributable to it. Cancelled-by-
+reverse-signal share of signals: 19% (30 Oct) to 57% (31 Oct), 56% (1 Nov); most are closed before target 1 at a small loss
+(392 trades, mean -14.8%): a whipsaw regime. The 181 trades open in export 2 resolved to net +290% (146 cancelled at a mean
+-1.8%, 35 reached targets). The 84 signals on the 14 added coins average -0.27% (36% positive), same as the rest after the change.
+No 20x (BB) rows appear yet, so the Bollinger rule was not running at export time. Paper fills have no fees or slippage;
+small losses and near-zero averages would be negative with costs. Open question for later: a cool-down after a reversal
+on a coin to damp whipsaw (test offline first).
+
 ## Owner confirmations
 - 2026-10-31: the owner confirmed the Cornix set-up is paper trading "for now". Cornix settings seen in the admin panel
   for a scanner signal: entries 65/15/10/10, targets 60/20/10/10, trailing "Moving Target" triggered at target 1,
