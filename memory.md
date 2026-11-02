@@ -367,3 +367,7 @@ Start time: to be recorded from the owner's `date -u`. Compare before and after 
 - Idea: the source may post flips of the last closed candles (a few minutes after the close) rather than the live price; tools/round_closed.py tests this offline with ./data.
 - round_closed result (30 scans): flips on the last closed candle explain only 15/127 posted source signals (12%), with 191 extra flips on source coins; looking back 2 or 3 closed candles adds no posted signal and many extras (362, 498). So the closed-candle idea is rejected; the live-price model (round_live: 74% found, 99 extras) stands. The source's choice among active flips (about 8 of 20 in the 13:50 UTC round) is still unexplained.
 - Rounds-mode restart with PEPE on the list: 2026-11-01 14:03:35 UTC (date -u 14:04:05 after 30 s). Schedule kept: next round 1793554489 = 2026-11-01 17:34:49 UTC.
+
+## Rounds period, first results (Botbac export to 2026-11-02 15:54 UTC; rounds mode since 2026-11-01 14:03:35 UTC)
+- 21 signals in about 26 h (about 19 a day, the source posts about 18): rounds at 11-01 17:35 (4), 21:48 (2), 11-02 03:07 (3), 11:46 (3), 15:53-15:54 (9, hit the cap). The 8 h 39 min gap between 03:07 and 11:46 means at least one empty round. Rules: 16 MACD, 3 EMA, 2 BB; 14 short, 7 long (the 15:53 round was all short). All coins are on the source list, one signal per coin per round.
+- Cornix per-signal margin result so far: mean +7.3% (21 signals; JUP long 17:35 cancelled -83.3%); too few to judge. Continuous period before: 1,336 signals in 3.6 days (about 330 a day).
