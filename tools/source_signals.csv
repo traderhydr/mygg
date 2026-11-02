@@ -96,33 +96,67 @@ ICPUSDT,2026-10-30 21:06:41,long,MACD Cross,25,Partial Targets Achieved,15.3425
 ONDOUSDT,2026-10-30 21:06:50,long,BB,20,Partial Targets Achieved,30.14
 PYTHUSDT,2026-10-30 21:06:56,long,BB,20,All Targets Achieved,41.1407
 ATOMUSDT,2026-10-31 00:50:19,short,MACD Cross,25,All Targets Achieved,42.8756
-BTCUSDT,2026-10-31 06:51:52,long,MACD Cross,25,Sell(1/4),19.7735
-ADAUSDT,2026-10-31 06:52:04,long,MACD Cross,25,Buy(2/4),-1.2893
+BTCUSDT,2026-10-31 06:51:52,long,MACD Cross,25,Cancelled,18.1708
+ADAUSDT,2026-10-31 06:52:04,long,MACD Cross,25,Cancelled,-25.7865
 DOGEUSDT,2026-10-31 06:52:06,long,MACD Cross,25,Partial Targets Achieved,13.9394
 XLMUSDT,2026-10-31 06:52:20,long,MACD Cross,25,Partial Targets Achieved,13.5591
-SUIUSDT,2026-10-31 06:52:29,long,MACD Cross,25,Buy(2/4),1.5841
+SUIUSDT,2026-10-31 06:52:29,long,MACD Cross,25,Cancelled,-20.0387
 ARBUSDT,2026-10-31 06:52:36,long,BB,20,Partial Targets Achieved,12.0714
 AAVEUSDT,2026-10-31 06:52:41,long,BB,20,Partial Targets Achieved,23.9777
 GRTUSDT,2026-10-31 06:52:48,long,MACD Cross,25,Partial Targets Achieved,16.5942
-FETUSDT,2026-10-31 06:52:55,long,MACD Cross,25,Buy(3/4),-1.0221
+FETUSDT,2026-10-31 06:52:55,long,MACD Cross,25,Buy(4/4),-85.7081
 PYTHUSDT,2026-10-31 06:57:52,long,EMA Cross,15,Partial Targets Achieved,32.6002
 WIFUSDT,2026-10-31 06:57:52,long,MACD Cross,25,Partial Targets Achieved,22.0031
 ICPUSDT,2026-10-31 06:57:52,long,MACD Cross,25,Partial Targets Achieved,15.3609
 ENAUSDT,2026-10-31 06:57:52,long,BB,20,Cancelled,-77.1954
 SEIUSDT,2026-10-31 06:57:52,long,MACD Cross,25,Cancelled,-34.4296
 ENAUSDT,2026-10-31 13:31:38,short,MACD Cross,25,Partial Targets Achieved,25.2589
-JUPUSDT,2026-10-31 13:31:40,short,MACD Cross,25,Buy(2/4),-16.0736
+JUPUSDT,2026-10-31 13:31:40,short,MACD Cross,25,Partial Targets Achieved,11.2792
 UNIUSDT,2026-10-31 17:57:34,long,BB,20,Partial Targets Achieved,8.7824
-IMXUSDT,2026-10-31 17:57:34,short,MACD Cross,25,Partial Targets Achieved,19.2556
+IMXUSDT,2026-10-31 17:57:34,short,MACD Cross,25,Partial Targets Achieved,19.7414
 INJUSDT,2026-10-31 17:57:34,short,MACD Cross,25,Partial Targets Achieved,21.6645
 FETUSDT,2026-10-31 17:57:34,short,EMA Cross,15,Partial Targets Achieved,7.1391
-BTCUSDT,2026-10-31 17:57:34,long,BB,20,Buy(2/4),8.4549
+BTCUSDT,2026-10-31 17:57:34,long,BB,20,Cancelled,5.3126
 JUPUSDT,2026-10-31 17:57:42,short,MACD Cross,25,Partial Targets Achieved,8.7007
-XLMUSDT,2026-10-31 21:23:40,long,MACD Cross,25,Buy(2/4),-22.3661
+XLMUSDT,2026-10-31 21:23:40,long,MACD Cross,25,Buy(2/4),-37.5287
 PYTHUSDT,2026-10-31 21:23:49,long,MACD Cross,25,Partial Targets Achieved,15.0795
 AVAXUSDT,2026-11-01 00:23:25,short,BB,20,Stopped Out,-78.8165
 ARBUSDT,2026-11-01 00:23:25,short,EMA Cross,15,Partial Targets Achieved,7.292
 SUIUSDT,2026-11-01 00:23:26,long,MACD Cross,25,Partial Targets Achieved,16.3386
-UNIUSDT,2026-11-01 00:23:26,short,BB,20,Partial Targets Achieved,12.6535
+UNIUSDT,2026-11-01 00:23:26,short,BB,20,Partial Targets Achieved,-77.1971
 SEIUSDT,2026-11-01 06:42:59,short,MACD Cross,25,Partial Targets Achieved,9.0682
 DOTUSDT,2026-11-01 06:42:59,short,EMA Cross,15,Partial Targets Achieved,6.2056
+WIFUSDT,2026-11-01 13:51:11,long,MACD Cross,25,Buy(4/4),-92.5301
+FETUSDT,2026-11-01 13:51:11,long,BB,20,Buy(4/4),-62.5618
+PEPEUSDT,2026-11-01 13:51:11,long,MACD Cross,25,Partial Targets Achieved,22.2474
+ADAUSDT,2026-11-01 13:51:11,long,EMA Cross,15,Cancelled,-12.4031
+GRTUSDT,2026-11-01 13:51:11,long,EMA Cross,15,Buy(3/4),-34.5615
+ORDIUSDT,2026-11-01 13:51:16,long,MACD Cross,25,Buy(3/4),-52.0503
+WLDUSDT,2026-11-01 13:51:16,long,MACD Cross,25,Stopped Out,-103.2765
+OPUSDT,2026-11-01 13:51:16,long,MACD Cross,25,Partial Targets Achieved,22.9533
+BTCUSDT,2026-11-01 18:50:42,short,BB,20,Cancelled,-8.4182
+ADAUSDT,2026-11-01 18:50:49,short,BB,20,Partial Targets Achieved,8.9583
+LINKUSDT,2026-11-01 18:50:57,short,BB,20,Partial Targets Achieved,22.0352
+SUIUSDT,2026-11-01 18:51:07,short,BB,20,Partial Targets Achieved,7.1046
+INJUSDT,2026-11-01 18:51:13,short,BB,20,Partial Targets Achieved,7.1207
+SEIUSDT,2026-11-01 18:51:24,short,BB,20,Partial Targets Achieved,9.8672
+RENDERUSDT,2026-11-01 18:51:27,short,EMA Cross,15,Partial Targets Achieved,7.0393
+PYTHUSDT,2026-11-01 18:51:34,short,BB,20,Partial Targets Achieved,19.2256
+ENAUSDT,2026-11-01 18:51:43,short,BB,20,Partial Targets Achieved,8.6668
+KASUSDT,2026-11-01 18:51:51,short,BB,20,Partial Targets Achieved,8.8202
+ADAUSDT,2026-11-01 22:41:33,short,MACD Cross,25,Partial Targets Achieved,10.6892
+ICPUSDT,2026-11-01 22:41:33,short,EMA Cross,15,Partial Targets Achieved,6.2048
+SHIBUSDT,2026-11-01 22:41:33,short,MACD Cross,25,Sell(2/4),27.2612
+KASUSDT,2026-11-01 22:41:39,short,MACD Cross,25,Partial Targets Achieved,12.651
+ONDOUSDT,2026-11-02 01:53:19,short,EMA Cross,15,Sell(3/4),21.8336
+ARBUSDT,2026-11-02 01:53:19,short,EMA Cross,15,Partial Targets Achieved,5.419
+BTCUSDT,2026-11-02 09:15:56,long,MACD Cross,25,Buy(2/4),-24.4634
+DOTUSDT,2026-11-02 09:16:11,long,EMA Cross,15,Buy(3/4),-18.3659
+LTCUSDT,2026-11-02 09:16:11,long,MACD Cross,25,Buy(2/4),-25.6138
+UNIUSDT,2026-11-02 09:16:17,long,EMA Cross,15,Partial Targets Achieved,7.2945
+SUIUSDT,2026-11-02 09:16:25,long,MACD Cross,25,Buy(2/4),-23.7699
+ARBUSDT,2026-11-02 09:16:33,long,MACD Cross,25,Buy(2/4),-32.7976
+AAVEUSDT,2026-11-02 09:16:37,short,BB,20,Partial Targets Achieved,10.4707
+FLOKIUSDT,2026-11-02 09:16:48,long,MACD Cross,25,Partial Targets Achieved,14.3064
+ORDIUSDT,2026-11-02 09:17:18,long,MACD Cross,25,Partial Targets Achieved,15.0323
+PYTHUSDT,2026-11-02 09:17:19,long,MACD Cross,25,Partial Targets Achieved,15.3339

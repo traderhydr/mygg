@@ -114,10 +114,10 @@ def parse_hours(specs):
     return out
 
 
-# The 35 coins that appear in the source channel's signals (week of 25 Oct - 1 Nov); the original never posted ETH,
+# The 37 coins that appear in the source channel's signals (week of 25 Oct - 1 Nov); the original never posted ETH,
 # SOL, XRP, BNB, KAS, LDO and other coins on our broader list.
-SOURCE_COINS = ("AAVE ADA APT ARB ATOM AVAX BTC DOGE DOT ENA FET FLOKI GRT ICP IMX INJ JUP LINK LTC NEAR ONDO OP PEPE "
-                "ORDI POL PYTH RENDER SEI STRK SUI TRX UNI WIF WLD XLM").split()
+SOURCE_COINS = ("AAVE ADA APT ARB ATOM AVAX BTC DOGE DOT ENA FET FLOKI GRT ICP IMX INJ JUP KAS LINK LTC NEAR ONDO OP PEPE "
+                "ORDI POL PYTH RENDER SEI SHIB STRK SUI TRX UNI WIF WLD XLM").split()
 # One signal per coin per round: when several rules flipped on a coin, the first of these wins (a guess: the source
 # posted ICP at 21:06 on 30 Oct as MACD although its Bollinger rule had also flipped).
 PRIORITY = {"MACD Cross": 0, "EMA Cross": 1, "BB": 2}
@@ -159,7 +159,7 @@ def _save_round_state(path, st):
 
 def scan(symbols, interval=20, log="mygg_flips.csv", rules=DEFAULT_RULES, once=False, cooldown=4,
          cooldown_scope="rule", max_per_hour=0, avoid_hours=frozenset(), rounds=False, round_gap=(3.0, 7.0),
-         round_max=9, round_coins=None, round_pause=1.0, rng=None):
+         round_max=12, round_coins=None, round_pause=1.0, rng=None):
     """Log every raw flip; publish (print + Telegram) unless the same coin, rule and direction was
     published within `cooldown` candles, or the coin already has a published signal in this candle (the
     original's batches never repeat a coin). The cooldown is a guess to tune against the original.

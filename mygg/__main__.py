@@ -47,9 +47,9 @@ def main():
                    help="post like the source: only in rounds every 3-7 h, the flips active then, one per coin")
     s.add_argument("--round-gap", type=float, nargs=2, default=[3.0, 7.0], metavar=("MIN_H", "MAX_H"),
                    help="hours between rounds, random within this range (default 3 7)")
-    s.add_argument("--round-max", type=int, default=9, help="most signals in one round (default 9)")
+    s.add_argument("--round-max", type=int, default=12, help="most signals in one round (default 12; the source has posted up to 10)")
     s.add_argument("--round-coins", nargs="*", default=None,
-                   help="coins allowed in rounds (default: the 35 coins the source uses); 'all' = the whole watchlist")
+                   help="coins allowed in rounds (default: the 37 coins the source uses); 'all' = the whole watchlist")
     s.add_argument("--cooldown", type=int, default=4,
                    help="candles before the same coin, rule and direction is published again (all flips are still logged)")
 

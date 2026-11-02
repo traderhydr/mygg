@@ -371,3 +371,8 @@ Start time: to be recorded from the owner's `date -u`. Compare before and after 
 ## Rounds period, first results (Botbac export to 2026-11-02 15:54 UTC; rounds mode since 2026-11-01 14:03:35 UTC)
 - 21 signals in about 26 h (about 19 a day, the source posts about 18): rounds at 11-01 17:35 (4), 21:48 (2), 11-02 03:07 (3), 11:46 (3), 15:53-15:54 (9, hit the cap). The 8 h 39 min gap between 03:07 and 11:46 means at least one empty round. Rules: 16 MACD, 3 EMA, 2 BB; 14 short, 7 long (the 15:53 round was all short). All coins are on the source list, one signal per coin per round.
 - Cornix per-signal margin result so far: mean +7.3% (21 signals; JUP long 17:35 cancelled -83.3%); too few to judge. Continuous period before: 1,336 signals in 3.6 days (about 330 a day).
+
+## Source vs ours, rounds period (source export to 2026-11-02 09:17 UTC; ours to 15:54)
+- Source since 14:03:35 UTC on 1 Nov: 26 signals (10 MACD, 10 BB, 6 EMA; 17 short, 9 long) in 4 rounds: 11-01 18:50 (10: BTC ADA LINK SUI INJ SEI RENDER PYTH ENA KAS, all short), 22:41 (4), 11-02 01:53 (2), 09:15 (10: BTC DOT LTC UNI SUI ARB AAVE FLOKI ORDI PYTH). Ours: 5 rounds, 21 signals (9 up to 09:17). In the same 19 h the source posted 26 and we 9: round sizes and timing differ because our round times are random.
+- Source coins not on our list: KAS (11-01 18:50, 22:41), SHIB (22:41) -> added; FLOKI was imported by Cornix this time. Source round sizes seen: up to 10; our default cap changed from 9 to 12 (the 15:53 round had hit 9). SOURCE_COINS now 37.
+- No signal of ours matched the source within 30 min (expected: different round times); fidelity of rules cannot be read from this comparison, only volume and mix.
