@@ -123,6 +123,10 @@ SOURCE_COINS = ("AAVE ADA APT ARB ATOM AVAX BTC DOGE DOT ENA FET FLOKI GRT ICP I
 PRIORITY = {"MACD Cross": 0, "EMA Cross": 1, "BB": 2}
 
 
+class _RoundHeld(Exception):
+    """A due round was moved to the end of the quiet hours (control flow only)."""
+
+
 def pick_round(cands, previous, limit):
     """Choose what a round publishes from candidates {order, key, rule, side, price}: one per coin by rule
     priority, nothing for a coin posted in the previous round, at most `limit`, rule priority then list order."""
@@ -172,7 +176,8 @@ def scan(symbols, interval=20, log="mygg_flips.csv", rules=DEFAULT_RULES, once=F
     posted until a round: every `round_gap` hours (random between the two numbers, the source's gaps were 3-7 h) the
     scanner posts the flips that are active at that moment, on `round_coins` only (default SOURCE_COINS), one per coin,
     skipping coins posted in the previous round, at most `round_max`, `round_pause` seconds apart. Round state is kept in
-    mygg_rounds.json next to the log, so a restart does not reset the schedule. Cooldown settings do not apply."""
+    mygg_rounds.json next to the log, so a restart does not reset the schedule. Cooldown settings do not apply.
+    In rounds mode avoid_hours are quiet hours: a round that falls due in them is held until they end (plus 1-10 min)."""
     import random
     rng = rng or random.Random()
     round_set = set(round_coins if round_coins is not None else SOURCE_COINS)
@@ -238,6 +243,16 @@ def scan(symbols, interval=20, log="mygg_flips.csv", rules=DEFAULT_RULES, once=F
                                 w.writerow(["time_utc", "symbol", "rule", "direction", "price", "entry1", "stop", "published"])
                             w.writerow(row[:7] + [1])
             if rounds and time.time() >= rstate["next"]:
+                if time.gmtime().tm_hour in avoid_hours:        # quiet hours: hold the round until they end
+                    t = time.time()
+                    for _ in range(24 * 60):
+                        if time.gmtime(t).tm_hour not in avoid_hours:
+                            break
+                        t += 60
+                    rstate = {"next": t + rng.uniform(60, 600), "last": rstate["last"]}
+                    _save_round_state(rpath, rstate)
+                    print("round held: quiet hours", flush=True)
+                    raise _RoundHeld
                 cands = []
                 for order, sym in enumerate(symbols):
                     api, scale = market(sym)
@@ -249,23 +264,13 @@ def scan(symbols, interval=20, log="mygg_flips.csv", rules=DEFAULT_RULES, once=F
                         if side:
                             cands.append(dict(order=order, key=key, rule=rule, side=side, price=prices[api] / scale))
                 chosen = pick_round(cands, set(rstate["last"]), round_max)
-                blocked = time.gmtime().tm_hour in avoid_hours
-                print(f"round: {len(cands)} active flips, {len(chosen)} {'blocked' if blocked else 'published'}", flush=True)
+                print(f"round: {len(cands)} active flips, {len(chosen)} published", flush=True)
                 posted = []
                 for c in chosen:
                     sig = template.build(c["side"], c["price"], ladder=True)
                     sig.update(symbol=c["key"], rule=c["rule"].name, leverage=c["rule"].leverage)
                     row = [time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()), c["key"], c["rule"].name,
-                           sig["side"], c["price"], sig["entries"][0], sig["stop"], 0 if blocked else 1]
-                    if blocked:
-                        bpath = os.path.join(os.path.dirname(os.path.abspath(log)), "mygg_blocked.csv")
-                        new = not os.path.exists(bpath)
-                        with open(bpath, "a", newline="") as f:
-                            w = csv.writer(f)
-                            if new:
-                                w.writerow(["time_utc", "symbol", "rule", "direction", "price", "entry1", "stop", "published"])
-                            w.writerow(row[:7] + [1])
-                        continue
+                           sig["side"], c["price"], sig["entries"][0], sig["stop"], 1]
                     text = format_signal(sig)
                     print(text, "\n", flush=True)
                     send_telegram(text)
@@ -275,6 +280,8 @@ def scan(symbols, interval=20, log="mygg_flips.csv", rules=DEFAULT_RULES, once=F
                     time.sleep(round_pause)
                 rstate = {"next": time.time() + rng.uniform(*round_gap) * 3600, "last": posted}
                 _save_round_state(rpath, rstate)
+        except _RoundHeld:
+            pass
         except Exception as ex:                                 # network hiccup: keep going
             print("scan error:", type(ex).__name__, flush=True)
         try:                                                    # proof of life for tools/status.sh

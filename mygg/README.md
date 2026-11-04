@@ -55,4 +55,5 @@ flips that are active at that moment on its own coins, one per coin. `--rounds` 
 - a round posts the flips active at that moment, on the 37 coins the source uses (`--round-coins`, or
   `--round-coins all`), one per coin (MACD, then EMA, then BB), skipping coins posted in the previous round,
   at most `--round-max` (12), a second apart;
-- `--cooldown` settings do not apply; `--avoid-hours` still skips a round that falls in a blocked hour.
+- `--cooldown` settings do not apply. `--avoid-hours 5-8 21-24` sets quiet hours (UTC): a round that falls due in them is held
+  until they end (plus 1-10 min) and then posts the flips that are active at that moment.

@@ -377,3 +377,6 @@ Start time: to be recorded from the owner's `date -u`. Compare before and after 
 - Source coins not on our list: KAS (11-01 18:50, 22:41), SHIB (22:41) -> added; FLOKI was imported by Cornix this time. Source round sizes seen: up to 10; our default cap changed from 9 to 12 (the 15:53 round had hit 9). SOURCE_COINS now 37.
 - No signal of ours matched the source within 30 min (expected: different round times); fidelity of rules cannot be read from this comparison, only volume and mix.
 - Rounds-mode restart with KAS, SHIB and round cap 12: 2026-11-02 17:02:26 UTC (date -u 17:02:56 after 30 s). Next round 1793646011 = 2026-11-02 19:00:11 UTC; last round posted INJ WLD JUP POL WIF DOGE FET LTC AAVE.
+
+## Quiet hours in rounds mode (built, awaiting the owner's restart)
+- `--avoid-hours 5-8 21-24` in rounds mode: a round that falls due in those UTC hours is held until they end (+1-10 min), then posts what is active; flips are still logged. Replaces the earlier behaviour of skipping the round. The source itself posts in these hours (rounds at 21:06 and 06:52 UTC), so quiet hours move us away from it; hours chosen from the earlier session analysis.

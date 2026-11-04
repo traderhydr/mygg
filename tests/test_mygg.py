@@ -415,6 +415,19 @@ class RoundsTest(unittest.TestCase):
         self.assertEqual(len(calls), 3)
         self.assertNotIn("100123456", out.getvalue())
 
+    def test_quiet_hours_hold_a_due_round_until_they_end(self):
+        import json, os, time
+        d, log, fake = self._env()
+        self._state(d, 0)
+        hour = time.gmtime().tm_hour
+        tg = self._scan(log, fake, avoid_hours=frozenset({hour}))
+        self.assertEqual(tg.call_count, 0)
+        with open(os.path.join(d, "mygg_rounds.json")) as f:
+            st = json.load(f)
+        self.assertGreater(st["next"], time.time())
+        self.assertNotEqual(time.gmtime(st["next"]).tm_hour, hour)          # moved past the quiet window
+        self.assertLess(st["next"], time.time() + 3 * 3600)                 # not a whole new 3-7 h wait
+
     def test_pick_round_priority_and_limit(self):
         from mygg import live
         from mygg.rules import BBBreak, EMACross, MACDCross
