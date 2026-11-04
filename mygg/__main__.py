@@ -40,6 +40,9 @@ def main():
     s.add_argument("--log", default="mygg_flips.csv")
     s.add_argument("--avoid-hours", nargs="*", default=[],
                    help='UTC hours with no new signals, e.g. --avoid-hours 5-8 21-24 (start inclusive, end exclusive)')
+    s.add_argument("--quiet", nargs="*", default=[], metavar="HH:MM-HH:MM",
+                   help='quiet windows with no new signals, e.g. --quiet 13:00-16:15 19:30-23:15 (start inclusive, end exclusive)')
+    s.add_argument("--quiet-tz", default="UTC", help="time zone of --quiet, e.g. Europe/Madrid (daylight saving is followed)")
     s.add_argument("--cooldown-scope", choices=["rule", "dir", "coin"], default="rule",
                    help="what the cooldown applies to: coin+rule+direction (default), coin+direction, or the whole coin")
     s.add_argument("--max-per-hour", type=int, default=0, help="cap on published signals per UTC hour (0 = no cap)")
@@ -81,7 +84,7 @@ def main():
         live.scan(coins, a.interval, log=a.log,
                   rules=[RULES[r]() for r in a.rules], once=a.once, cooldown=a.cooldown,
                   cooldown_scope=a.cooldown_scope, max_per_hour=a.max_per_hour,
-                  avoid_hours=live.parse_hours(a.avoid_hours), rounds=a.rounds, round_gap=tuple(a.round_gap),
+                  avoid_hours=live.parse_hours(a.avoid_hours), quiet=live.parse_quiet(a.quiet, a.quiet_tz), rounds=a.rounds, round_gap=tuple(a.round_gap),
                   round_max=a.round_max,
                   round_coins=(coins if a.round_coins == ["all"] else
                                [x.upper().removesuffix("USDT") for x in a.round_coins] if a.round_coins else None))

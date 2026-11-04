@@ -114,6 +114,26 @@ def parse_hours(specs):
     return out
 
 
+def parse_quiet(specs, tz="UTC"):
+    """['13:00-16:15', '19:30-23:15'] with a time zone name -> a function epoch_seconds -> True while inside a window.
+    Start inclusive, end exclusive, in the local time of `tz` (daylight saving included); a window may wrap midnight."""
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    zone = ZoneInfo(tz)
+    wins = []
+    for sp in specs or []:
+        a, _, b = str(sp).partition("-")
+        h1, _, m1 = a.partition(":")
+        h2, _, m2 = b.partition(":")
+        wins.append((int(h1) * 60 + int(m1 or 0), int(h2) * 60 + int(m2 or 0)))
+
+    def is_quiet(ts):
+        d = datetime.fromtimestamp(ts, zone)
+        now = d.hour * 60 + d.minute
+        return any(lo <= now < hi if lo < hi else now >= lo or now < hi for lo, hi in wins)
+    return is_quiet
+
+
 # The 37 coins that appear in the source channel's signals (week of 25 Oct - 1 Nov); the original never posted ETH,
 # SOL, XRP, BNB, KAS, LDO and other coins on our broader list.
 SOURCE_COINS = ("AAVE ADA APT ARB ATOM AVAX BTC DOGE DOT ENA FET FLOKI GRT ICP IMX INJ JUP KAS LINK LTC NEAR ONDO OP PEPE "
@@ -162,7 +182,7 @@ def _save_round_state(path, st):
 
 
 def scan(symbols, interval=20, log="mygg_flips.csv", rules=DEFAULT_RULES, once=False, cooldown=4,
-         cooldown_scope="rule", max_per_hour=0, avoid_hours=frozenset(), rounds=False, round_gap=(3.0, 7.0),
+         cooldown_scope="rule", max_per_hour=0, avoid_hours=frozenset(), quiet=None, rounds=False, round_gap=(3.0, 7.0),
          round_max=12, round_coins=None, round_pause=1.0, rng=None):
     """Log every raw flip; publish (print + Telegram) unless the same coin, rule and direction was
     published within `cooldown` candles, or the coin already has a published signal in this candle (the
@@ -177,9 +197,15 @@ def scan(symbols, interval=20, log="mygg_flips.csv", rules=DEFAULT_RULES, once=F
     scanner posts the flips that are active at that moment, on `round_coins` only (default SOURCE_COINS), one per coin,
     skipping coins posted in the previous round, at most `round_max`, `round_pause` seconds apart. Round state is kept in
     mygg_rounds.json next to the log, so a restart does not reset the schedule. Cooldown settings do not apply.
+    quiet: optional function epoch -> bool (see parse_quiet) for quiet windows with minutes and a time zone; it works
+    together with avoid_hours (either one blocks).
     In rounds mode avoid_hours are quiet hours: a round that falls due in them is held until they end (plus 1-10 min)."""
     import random
     rng = rng or random.Random()
+
+    def is_quiet(ts):
+        return time.gmtime(ts).tm_hour in avoid_hours or bool(quiet and quiet(ts))
+
     round_set = set(round_coins if round_coins is not None else SOURCE_COINS)
     rpath = os.path.join(os.path.dirname(os.path.abspath(log)), "mygg_rounds.json")
     rstate = _round_state(rpath, round_gap, rng) if rounds else None
@@ -216,7 +242,7 @@ def scan(symbols, interval=20, log="mygg_flips.csv", rules=DEFAULT_RULES, once=F
                     seen.add((key, rule.name, start, side))
                     ck = _cooldown_key(key, rule.name, side, cooldown_scope)
                     hour = now // 3600000
-                    blocked = time.gmtime(now / 1000).tm_hour in avoid_hours
+                    blocked = is_quiet(now / 1000)
                     publish = (start - last_pub.get(ck, -10 ** 15) >= cooldown * BAR_MS
                                and (key, start) not in in_candle           # one published signal per coin per candle
                                and (not max_per_hour or hours.get(hour, 0) < max_per_hour)
@@ -243,10 +269,10 @@ def scan(symbols, interval=20, log="mygg_flips.csv", rules=DEFAULT_RULES, once=F
                                 w.writerow(["time_utc", "symbol", "rule", "direction", "price", "entry1", "stop", "published"])
                             w.writerow(row[:7] + [1])
             if rounds and time.time() >= rstate["next"]:
-                if time.gmtime().tm_hour in avoid_hours:        # quiet hours: hold the round until they end
+                if is_quiet(time.time()):                       # quiet hours: hold the round until they end
                     t = time.time()
                     for _ in range(24 * 60):
-                        if time.gmtime(t).tm_hour not in avoid_hours:
+                        if not is_quiet(t):
                             break
                         t += 60
                     rstate = {"next": t + rng.uniform(60, 600), "last": rstate["last"]}

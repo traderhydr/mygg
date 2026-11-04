@@ -428,6 +428,29 @@ class RoundsTest(unittest.TestCase):
         self.assertNotEqual(time.gmtime(st["next"]).tm_hour, hour)          # moved past the quiet window
         self.assertLess(st["next"], time.time() + 3 * 3600)                 # not a whole new 3-7 h wait
 
+    def test_quiet_windows_follow_the_time_zone_and_minutes(self):
+        import calendar
+        from mygg import live
+        q = live.parse_quiet(["13:00-16:15", "19:30-23:15"], "Europe/Madrid")
+        t = lambda mo, h, m: calendar.timegm((2026, mo, 4, h, m, 0))
+        # November: Madrid = UTC+1
+        self.assertEqual([q(t(11, h, m)) for h, m in ((11, 59), (12, 0), (15, 14), (15, 15), (18, 29), (18, 30), (22, 14), (22, 15))],
+                         [False, True, True, False, False, True, True, False])
+        # July: Madrid = UTC+2, so the same local windows start an hour earlier in UTC
+        self.assertTrue(q(t(7, 11, 0)))
+        self.assertFalse(q(t(7, 10, 59)))
+
+    def test_a_quiet_window_holds_a_due_round(self):
+        import json, os, time
+        d, log, fake = self._env()
+        self._state(d, 0)
+        tg = self._scan(log, fake, quiet=lambda ts: ts < time.time() + 600)       # quiet for the next 10 minutes
+        self.assertEqual(tg.call_count, 0)
+        with open(os.path.join(d, "mygg_rounds.json")) as f:
+            nxt = json.load(f)["next"]
+        self.assertGreater(nxt, time.time() + 590)
+        self.assertLess(nxt, time.time() + 1300)
+
     def test_pick_round_priority_and_limit(self):
         from mygg import live
         from mygg.rules import BBBreak, EMACross, MACDCross

@@ -57,3 +57,5 @@ flips that are active at that moment on its own coins, one per coin. `--rounds` 
   at most `--round-max` (12), a second apart;
 - `--cooldown` settings do not apply. `--avoid-hours 5-8 21-24` sets quiet hours (UTC): a round that falls due in them is held
   until they end (plus 1-10 min) and then posts the flips that are active at that moment.
+  `--quiet 13:00-16:15 19:30-23:15 --quiet-tz Europe/Madrid` sets quiet windows with minutes in a local time zone
+  (daylight saving followed); it can be combined with `--avoid-hours`.
